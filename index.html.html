@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#fdf2f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="小美生活OS">
+<title>🌷小美的生活操作系统</title>
+<style>
+:root{
+  --bg:#fdf6fb; --card:#fff; --primary:#ec4899; --primary-d:#db2777; --primary-l:#fce7f3;
+  --text:#4a3340; --text2:#8b7280; --text3:#c4a8b4;
+  --border:#f3e8ef; --shadow:0 4px 20px rgba(236,72,153,.07); --shadow-lg:0 8px 30px rgba(236,72,153,.12);
+  --r:18px; --rs:12px;
+  --red:#f87171; --red-l:#fee2e2; --blue:#60a5fa; --blue-l:#dbeafe; --green:#34d399; --green-l:#d1fae5;
+  --yellow:#fbbf24; --yellow-l:#fef3c7; --orange:#fb923c; --orange-l:#ffedd5; --purple:#a78bfa; --purple-l:#ede9fe;
+  --teal:#2dd4bf; --teal-l:#ccfbf1;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:90px;min-height:100vh}
+input,textarea,select,button{font-family:inherit;font-size:14px;border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;outline:none;width:100%;background:#fffdfa}
+input:focus,textarea:focus,select:focus{border-color:var(--primary);background:#fff}
+textarea{resize:none;min-height:70px}
+.btn{background:var(--primary);color:#fff;border:none;font-weight:500;cursor:pointer;transition:.15s}
+.btn:active{transform:scale(.97);opacity:.9}
+.btn-block{width:100%;padding:12px;font-size:15px}
+.btn-ghost{background:var(--primary-l);color:var(--primary)}
+.row{display:flex;gap:8px;margin-bottom:8px}.row>*{flex:1}.row .fixed{flex:0 0 auto}.row input[type=number],.row input[type=text],.row input[type=date],.row input[type=time]{min-width:120px}.row select{min-width:90px}
+
+.topbar{background:var(--card);padding:calc(env(safe-area-inset-top)+12px) 16px 12px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.03)}
+.topbar-row{display:flex;align-items:center;justify-content:space-between}
+.topbar h1{font-size:19px;font-weight:700;display:flex;align-items:center;gap:6px}
+.topbar .date{font-size:11px;color:var(--text2);margin-top:2px}
+.avatar{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#f9a8d4,#ec4899);display:flex;align-items:center;justify-content:center;font-size:18px}
+
+.page{display:none;padding:14px}.page.active{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.card-title .emoji{font-size:17px}
+.card-sub{font-size:11px;color:var(--text2)}
+.muted{color:var(--text2);font-size:12px}
+.big{font-size:24px;font-weight:700}
+.flex-b{display:flex;justify-content:space-between;align-items:center}
+
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat .icon{font-size:20px;margin-bottom:6px}
+.stat .num{font-size:20px;font-weight:700}
+.stat .lbl{font-size:11px;color:var(--text2);margin-top:2px}
+.stat .sub{font-size:10px;color:var(--text3);margin-top:4px}
+.stat.pink{background:linear-gradient(135deg,#ec4899,#f9a8d4);color:#fff}
+.stat.pink .lbl{color:rgba(255,255,255,.85)}.stat.pink .sub{color:rgba(255,255,255,.7)}
+
+.pbar{height:10px;background:var(--primary-l);border-radius:5px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,#ec4899,#f9a8d4);border-radius:5px;transition:width .5s}
+.ptext{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:5px}
+
+.list{list-style:none}.li{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}.li:last-child{border-bottom:none}
+.li .lf{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.li .lf .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--primary-l);color:var(--primary);white-space:nowrap}
+.tag.food{background:var(--red-l);color:var(--red)}.tag.drink{background:var(--purple-l);color:var(--purple)}.tag.transport{background:var(--blue-l);color:var(--blue)}.tag.rent{background:var(--orange-l);color:#d97706}.tag.utility{background:var(--yellow-l);color:#d97706}.tag.shop{background:var(--green-l);color:#059669}.tag.ent{background:var(--teal-l);color:#0d9488}.tag.medical{background:#fee2e2;color:#ef4444}.tag.other{background:#f3f4f6;color:#6b7280}
+.tag.income{background:var(--green-l);color:#059669}
+.chk{display:flex;align-items:center;gap:8px;flex:1}.chk input{width:17px;height:17px;accent-color:var(--primary)}.chk.done{text-decoration:line-through;color:var(--text3)}
+.del{color:#d1d5db;font-size:18px;padding:0 3px;cursor:pointer;line-height:1}.del:active{color:var(--red)}
+
+.tip{background:var(--yellow-l);border-left:3px solid var(--yellow);padding:9px 11px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.6;color:#92400e}
+.tip.green{background:var(--green-l);border-color:var(--green);color:#065f46}.tip.blue{background:var(--blue-l);border-color:var(--blue);color:#1e40af}.tip.pink{background:var(--primary-l);border-color:var(--primary);color:var(--primary-d)}
+
+.empty{text-align:center;padding:20px 0;color:var(--text3);font-size:12px}.empty .emoji{font-size:32px;margin-bottom:4px}
+
+.seg{display:flex;background:#fbeef4;border-radius:10px;padding:3px;margin-bottom:12px;gap:2px}
+.seg-item{flex:1;text-align:center;padding:7px 4px;font-size:12px;color:var(--text2);border-radius:8px;cursor:pointer;white-space:nowrap}
+.seg-item.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+
+.cat-row{margin-bottom:10px}.cat-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}.cat-bar{height:16px;border-radius:8px;background:#f7e8ef;overflow:hidden}.cat-fill{height:100%;border-radius:8px;transition:width .5s}
+.cat-fill.food{background:var(--red)}.cat-fill.drink{background:var(--purple)}.cat-fill.transport{background:var(--blue)}.cat-fill.rent{background:var(--orange)}.cat-fill.utility{background:var(--yellow)}.cat-fill.shop{background:var(--green)}.cat-fill.ent{background:var(--teal)}.cat-fill.medical{background:#ef4444}.cat-fill.other{background:#9ca3af}
+
+.goal-card{background:linear-gradient(135deg,#ec4899,#f9a8d4);color:#fff;border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:var(--shadow-lg)}
+.goal-card .gname{font-size:13px;opacity:.9}.goal-card .gnum{font-size:24px;font-weight:700;margin:5px 0}.goal-card .gbar{height:8px;background:rgba(255,255,255,.3);border-radius:4px;overflow:hidden}.goal-card .gfill{height:100%;background:#fff;border-radius:4px;transition:width .5s}.goal-card .gt{display:flex;justify-content:space-between;font-size:11px;opacity:.9;margin-top:5px}
+
+.habits{display:flex;flex-wrap:wrap;gap:6px}
+.habit{padding:8px 12px;border-radius:var(--rs);background:#fffdfa;border:1px solid var(--border);font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;transition:.15s}
+.habit .dot{width:9px;height:9px;border-radius:50%;background:#e5e7eb}
+.habit.done{background:var(--green-l);border-color:var(--green);color:#065f46}.habit.done .dot{background:var(--green)}
+
+.bottomnav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:100}
+.bn-inner{display:flex;justify-content:space-around;max-width:520px;margin:0 auto}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--text3);font-size:9px;padding:3px 0;cursor:pointer}
+.bn-item .ic{font-size:20px;line-height:1}.bn-item.active{color:var(--primary);font-weight:600}
+
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.day{text-align:center;padding:7px 0;border-radius:9px;font-size:10px}
+.day .d{font-size:14px;font-weight:600}.day .n{color:var(--text3);font-size:9px}
+.day.today{background:var(--primary);color:#fff}.day.today .n{color:rgba(255,255,255,.8)}.day.has{color:var(--primary)}.day.has::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--primary);margin:2px auto 0}
+
+.timeline{position:relative;padding-left:18px}.timeline::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--border)}
+.tl-item{position:relative;padding:6px 0 6px 14px;font-size:12px}.tl-item::before{content:'';position:absolute;left:-16px;top:12px;width:9px;height:9px;border-radius:50%;background:var(--primary);border:2px solid #fff}.tl-item .t{color:var(--text3);font-size:10px}.tl-item.done::before{background:var(--green)}.tl-item.done .txt{text-decoration:line-through;color:var(--text3)}
+
+.tl-section{margin-bottom:12px}.tl-section-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:4px}
+
+.bar-chart{display:flex;align-items:flex-end;gap:5px;height:100px;padding:0 4px}
+.bar-col{flex:1;text-align:center;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar{background:linear-gradient(180deg,#f9a8d4,#ec4899);border-radius:5px 5px 0 0;margin:0 auto;width:65%;min-height:3px;transition:height .5s}
+.bar-label{font-size:9px;color:var(--text3);margin-top:3px}.bar-val{font-size:9px;color:var(--primary);font-weight:600;margin-bottom:2px}
+
+.recipe{border:1px solid var(--border);border-radius:var(--rs);padding:12px;margin-bottom:8px}
+.recipe .rname{font-size:14px;font-weight:600;margin-bottom:4px}.recipe .rmeta{font-size:11px;color:var(--text2);margin-bottom:6px}.recipe .ring{font-size:12px;color:var(--text)}
+
+.book{border:1px solid var(--border);border-radius:var(--rs);padding:12px;margin-bottom:8px}
+.book .btitle{font-size:14px;font-weight:600}.book .bmeta{font-size:11px;color:var(--text2);margin:3px 0}.book .bnote{font-size:12px;color:var(--text)}
+
+.stars{color:var(--yellow);font-size:13px;letter-spacing:2px}
+
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+@media(min-width:600px){.page{max-width:520px;margin:0 auto}.topbar>div{max-width:520px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <div>
+      <h1>🌷小美的生活操作系统</h1>
+      <div class="date" id="topDate"></div>
+    </div>
+    <div class="avatar">🌷</div>
+  </div>
+</div>
+
+<!-- ===== 首页 ===== -->
+<section class="page active" id="p-home">
+  <div class="stat-grid">
+    <div class="stat pink"><div class="icon">💰</div><div class="num" id="hSpent">¥0</div><div class="lbl">今日已花</div></div>
+    <div class="stat"><div class="icon">✅</div><div class="num" id="hTodo">0/0</div><div class="lbl">今日待办</div></div>
+    <div class="stat"><div class="icon">🎯</div><div class="num" id="hBudget">¥0</div><div class="lbl">本月剩余</div><div class="sub" id="hBudgetPct">支出 0%</div></div>
+    <div class="stat"><div class="icon">🐖</div><div class="num" id="hSave">¥0</div><div class="lbl">已存入</div><div class="sub" id="hSavePct">目标 0%</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">📅</span>本周一览</div><span class="muted" id="weekRange"></span></div>
+    <div class="week" id="weekCal"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">📋</span>今日计划</div><span class="muted" id="hTodoCnt">0项</span></div>
+    <div id="hTodoList"><div class="empty"><div class="emoji">🌸</div>今天还没有计划</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">🔥</span>习惯打卡</div><span class="muted" id="hHabit">0/0</span></div>
+    <div class="habits" id="hHabits"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">💡</span>今日小建议</div></div>
+    <div class="tip" id="hTip">开始记录你的生活，我会帮你分析给出建议～</div>
+  </div>
+</section>
+
+<!-- ===== 财务管理 ===== -->
+<section class="page" id="p-finance">
+  <div class="seg">
+    <div class="seg-item active" onclick="finTab('record')">记一笔</div>
+    <div class="seg-item" onclick="finTab('budget')">月度预算</div>
+    <div class="seg-item" onclick="finTab('goal')">储蓄目标</div>
+    <div class="seg-item" onclick="finTab('income')">收入</div>
+  </div>
+
+  <div id="fin-record">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">💰</span>记录消费</div></div>
+      <div class="row"><input type="text" id="expItem" placeholder="项目，如 午饭" style="flex:2"><input type="number" id="expAmt" placeholder="金额" style="flex:1"></div>
+      <select id="expCat" style="margin-bottom:8px">
+        <option value="food">🍔 餐饮</option><option value="drink">🧋 饮品奶茶</option><option value="transport">🚇 交通</option>
+        <option value="rent">🏠 房租</option><option value="utility">💡 水电费</option><option value="shop">🛍️ 购物</option>
+        <option value="ent">🎮 娱乐</option><option value="medical">💊 医疗</option><option value="other">📦 其他</option>
+      </select>
+      <button class="btn btn-block" onclick="addExp()">记一笔</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🧾</span>今日消费</div><span class="muted" id="expToday">¥0</span></div>
+      <ul class="list" id="expList"><li class="empty"><div class="emoji">🧾</div>今天还没有记录</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📊</span>本月分类</div><span class="muted" id="expMonth">¥0</span></div>
+      <div id="expCats"><div class="empty"><div class="emoji">📊</div>记几笔后出图表</div></div>
+    </div>
+  </div>
+
+  <div id="fin-budget" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">💳</span>本月预算</div></div>
+      <div class="row"><input type="number" id="bdgInput" placeholder="设置月预算" value="4000" style="font-size:16px;font-weight:600;padding:12px"><button class="btn fixed" onclick="saveBdg()" style="width:70px;flex:0 0 70px">保存</button></div>
+      <div class="pbar"><div class="pfill" id="bdgFill" style="width:0%"></div></div>
+      <div class="ptext"><span id="bdgSpent">已花 ¥0</span><span id="bdgRemain">剩余 ¥4000</span></div>
+      <div class="tip" id="bdgTip" style="margin-top:10px">设置预算后联动显示。</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📈</span>本月收支</div></div>
+      <div class="stat-grid" style="margin-bottom:0">
+        <div class="stat" style="background:var(--green-l)"><div class="icon">💵</div><div class="num" style="color:#059669" id="bdgIncome">¥0</div><div class="lbl">本月收入</div></div>
+        <div class="stat" style="background:var(--red-l)"><div class="icon">💸</div><div class="num" style="color:#dc2626" id="bdgExpense">¥0</div><div class="lbl">本月支出</div></div>
+        <div class="stat" style="background:var(--blue-l)"><div class="icon">🏦</div><div class="num" style="color:#2563eb" id="bdgNet">¥0</div><div class="lbl">结余</div></div>
+        <div class="stat" style="background:var(--primary-l)"><div class="icon">📊</div><div class="num" style="color:var(--primary-d)" id="bdgRate">0%</div><div class="lbl">消费比例</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fin-goal" style="display:none">
+    <div class="goal-card" id="goalCard">
+      <div class="gname" id="gName">还没设置目标</div><div class="gnum" id="gNum">¥0 / ¥0</div>
+      <div class="gbar"><div class="gfill" id="gFill" style="width:0%"></div></div>
+      <div class="gt"><span id="gPct">0%</span><span id="gRemain">还差 ¥0</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🎯</span>设置储蓄目标</div></div>
+      <div class="row"><input type="text" id="goalName" placeholder="目标名称，如 年底旅行"><input type="number" id="goalAmt" placeholder="目标金额" style="flex:0 0 110px"></div>
+      <div class="row"><input type="number" id="goalSaved" placeholder="已存金额"><button class="btn fixed" onclick="saveGoal()" style="min-width:70px">保存</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">💡</span>存钱建议</div></div>
+      <div class="tip green">💡 每月发工资当天，先转20%到单独账户，剩下的再花。这叫"先存后花"，比花剩再存有效得多。</div>
+    </div>
+  </div>
+
+  <div id="fin-income" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">💵</span>记录收入</div></div>
+      <div class="row"><input type="text" id="incItem" placeholder="来源，如 工资" style="flex:2"><input type="number" id="incAmt" placeholder="金额" style="flex:1"></div>
+      <select id="incCat" style="margin-bottom:8px"><option value="salary">💼 工资</option><option value="subsidy">🎁 补贴</option><option value="other">📦 其他</option></select>
+      <button class="btn btn-block" onclick="addInc()">记录收入</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>本月收入</div><span class="muted" id="incTotal">¥0</span></div>
+      <ul class="list" id="incList"><li class="empty"><div class="emoji">💵</div>本月还没有收入记录</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 家庭生活 ===== -->
+<section class="page" id="p-home2">
+  <div class="seg">
+    <div class="seg-item active" onclick="homeTab('info')">房屋信息</div>
+    <div class="seg-item" onclick="homeTab('goods')">家用品</div>
+    <div class="seg-item" onclick="homeTab('maintain')">维护提醒</div>
+  </div>
+
+  <div id="home-info">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🏠</span>房屋信息</div></div>
+      <div class="li"><span class="muted">月房租</span><input type="number" id="hRent" placeholder="金额" style="width:100px;margin:0" onchange="saveHouse()"></div>
+      <div class="li"><span class="muted">水费</span><input type="number" id="hWater" placeholder="金额" style="width:100px;margin:0" onchange="saveHouse()"></div>
+      <div class="li"><span class="muted">电费</span><input type="number" id="hElec" placeholder="金额" style="width:100px;margin:0" onchange="saveHouse()"></div>
+      <div class="li"><span class="muted">网络</span><input type="number" id="hNet" placeholder="金额" style="width:100px;margin:0" onchange="saveHouse()"></div>
+      <div class="li"><span class="muted">物业</span><input type="number" id="hMgnt" placeholder="金额" style="width:100px;margin:0" onchange="saveHouse()"></div>
+      <div class="divider"></div>
+      <div class="flex-b"><span class="muted">月固定支出</span><span class="big" style="color:var(--primary)" id="hTotal">¥0</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">💡</span>省钱提示</div></div>
+      <div class="tip">💡 房租水电是固定支出，每月记账时记得一并录入，这样月底复盘才准确。电器不用时拔插头，每月能省几十块电费。</div>
+    </div>
+  </div>
+
+  <div id="home-goods" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🧴</span>添加家用品</div></div>
+      <div class="row"><input type="text" id="gdName" placeholder="物品名称"><select id="gdCat" style="flex:0 0 90px"><option value="kitchen">厨房</option><option value="clean">清洁</option><option value="storage">收纳</option><option value="elec">电器</option></select></div>
+      <div class="row"><input type="date" id="gdDate" placeholder="购买日期"><select id="gdStatus" style="flex:0 0 90px"><option value="bought">已购买</option><option value="tobuy">待购买</option></select></div>
+      <button class="btn btn-block" onclick="addGoods()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📦</span>家用品清单</div></div>
+      <div id="gdList"><div class="empty"><div class="emoji">📦</div>还没有记录</div></div>
+    </div>
+  </div>
+
+  <div id="home-maintain" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🧹</span>添加维护提醒</div></div>
+      <div class="row"><input type="text" id="mtName" placeholder="事项，如 换床单"><input type="number" id="mtCycle" placeholder="天数" value="7" style="flex:0 0 80px"></div>
+      <div class="muted" style="font-size:11px;margin:-4px 0 8px">填 1=每天，2=每两天，7=每周，30=每月</div>
+      <button class="btn btn-block" onclick="addMaintain()">添加提醒</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>维护清单</div></div>
+      <ul class="list" id="mtList"><li class="empty"><div class="emoji">🧹</div>还没有维护提醒</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 饮食管理 ===== -->
+<section class="page" id="p-food">
+  <div class="seg">
+    <div class="seg-item active" onclick="foodTab('plan')">周计划</div>
+    <div class="seg-item" onclick="foodTab('recipe')">菜谱</div>
+    <div class="seg-item" onclick="foodTab('list')">购物清单</div>
+    <div class="seg-item" onclick="foodTab('record')">饮食记录</div>
+  </div>
+
+  <div id="food-plan">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">➕</span>添加饮食计划</div></div>
+      <div class="row">
+        <select id="mpDay" style="flex:0 0 90px"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="0">周日</option></select>
+        <input type="text" id="mpText" placeholder="如 番茄鸡蛋面" style="flex:1">
+      </div>
+      <button class="btn btn-block" onclick="addMeal()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📅</span>本周饮食计划</div></div>
+      <div id="mealPlan"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">💡</span>省钱健康建议</div></div>
+      <div class="tip green">💡 自己做饭一顿成本约10-15元，外卖平均25-35元。每周做5天饭，一个月能省500+，还更健康。建议周末批量备菜，工作日加热就行。</div>
+    </div>
+  </div>
+
+  <div id="food-recipe" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji"> cookbook</span>添加菜谱</div></div>
+      <input type="text" id="rcName" placeholder="菜名" style="margin-bottom:8px">
+      <div class="row"><input type="text" id="rcCost" placeholder="预估成本" style="flex:1"><input type="text" id="rcTime" placeholder="用时" style="flex:1"></div>
+      <textarea id="rcIng" placeholder="食材和做法"></textarea>
+      <button class="btn btn-block" onclick="addRecipe()" style="margin-top:8px">保存菜谱</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📚</span>我的菜谱</div></div>
+      <div id="rcList"><div class="empty"><div class="emoji">📖</div>还没有收藏菜谱</div></div>
+    </div>
+  </div>
+
+  <div id="food-list" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🛒</span>添加食材</div></div>
+      <div class="row"><input type="text" id="flInput" placeholder="要买的食材"><button class="btn fixed" onclick="addFoodList()" style="min-width:60px">添加</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>食材清单</div><span class="muted" id="flCount">0项</span></div>
+      <ul class="list" id="flList"><li class="empty"><div class="emoji">🥬</div>清单是空的</li></ul>
+    </div>
+  </div>
+
+  <div id="food-record" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🍽️</span>记录一餐</div></div>
+      <div class="row"><input type="text" id="frName" placeholder="吃了什么" style="flex:2"><input type="number" id="frCost" placeholder="花费" style="flex:1"></div>
+      <div class="row"><select id="frMeal"><option value="breakfast">🌅 早餐</option><option value="lunch">☀️ 午餐</option><option value="dinner">🌙 晚餐</option><option value="snack">🍪 加餐</option></select><button class="btn fixed" onclick="addFoodRec()" style="min-width:60px">记录</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>今日饮食</div><span class="muted" id="frTotal">¥0</span></div>
+      <ul class="list" id="frList"><li class="empty"><div class="emoji">🍽️</div>今天还没有记录</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 日常计划 ===== -->
+<section class="page" id="p-plan">
+  <div class="seg">
+    <div class="seg-item active" onclick="planTab('today')">今日</div>
+    <div class="seg-item" onclick="planTab('week')">每周</div>
+    <div class="seg-item" onclick="planTab('month')">月目标</div>
+    <div class="seg-item" onclick="planTab('todo')">待办</div>
+  </div>
+
+  <div id="plan-today">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">➕</span>添加今日事项</div></div>
+      <div class="row"><input type="text" id="tdInput" placeholder="要做的事"><input type="time" id="tdTime" style="flex:0 0 100px"></div>
+      <select id="tdLevel" style="margin-bottom:8px"><option value="important">🔴 重要事项</option><option value="normal">🟡 普通事项</option><option value="life">🟢 生活任务</option></select>
+      <button class="btn btn-block" onclick="addTodo()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🔴</span>重要事项</div></div>
+      <ul class="list" id="tdImportant"><li class="empty"><div class="emoji">🔴</div>暂无</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🟡</span>普通事项</div></div>
+      <ul class="list" id="tdNormal"><li class="empty"><div class="emoji">🟡</div>暂无</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🟢</span>生活任务</div></div>
+      <ul class="list" id="tdLife"><li class="empty"><div class="emoji">🟢</div>暂无</li></ul>
+    </div>
+  </div>
+
+  <div id="plan-week" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📅</span>本周规划</div></div>
+      <div class="row"><input type="text" id="wkInput" placeholder="本周要完成什么"><select id="wkDay" style="flex:0 0 90px"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="0">周日</option></select></div>
+      <button class="btn btn-block" onclick="addWeek()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>本周计划</div></div>
+      <div id="wkList"></div>
+    </div>
+  </div>
+
+  <div id="plan-month" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🎯</span>添加月目标</div></div>
+      <div class="row"><input type="text" id="moInput" placeholder="这个月想达成什么"><input type="number" id="moTarget" placeholder="目标值" style="flex:0 0 100px"></div>
+      <button class="btn btn-block" onclick="addMonth()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>本月目标</div></div>
+      <div id="moList"><div class="empty"><div class="emoji">🎯</div>还没设置月目标</div></div>
+    </div>
+  </div>
+
+  <div id="plan-todo" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📝</span>添加待办</div></div>
+      <div class="row"><input type="text" id="todoInput" placeholder="待办事项"><button class="btn fixed" onclick="addTodoItem()" style="min-width:60px">添加</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>待办列表</div></div>
+      <ul class="list" id="todoItemList"><li class="empty"><div class="emoji">📝</div>暂无待办</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 购物管理 ===== -->
+<section class="page" id="p-shop">
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">🛒</span>添加商品</div></div>
+    <div class="row"><input type="text" id="spName" placeholder="商品名称" style="flex:2"><input type="number" id="spPrice" placeholder="价格" style="flex:1"></div>
+    <select id="spCat" style="margin-bottom:8px"><option value="need">🔴 必需品</option><option value="want">🟡 想买可等</option><option value="done">✅ 已购买</option></select>
+    <button class="btn btn-block" onclick="addShop()">添加</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">🔴</span>必需品</div><span class="muted" id="spNeedCnt">0项</span></div>
+    <ul class="list" id="spNeed"><li class="empty"><div class="emoji">🔴</div>暂无</li></ul>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">🟡</span>想买但可以等</div><span class="muted" id="spWantCnt">0项</span></div>
+    <ul class="list" id="spWant"><li class="empty"><div class="emoji">🟡</div>暂无</li></ul>
+    <div class="tip" style="margin-top:10px">💡 想买的东西先放这，过一周还想买再下单。很多冲动消费放几天就不想要了。</div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">✅</span>已购买</div><span class="muted" id="spDoneCnt">0项</span></div>
+    <ul class="list" id="spDone"><li class="empty"><div class="emoji">✅</div>暂无</li></ul>
+  </div>
+</section>
+
+<!-- ===== 个人成长 ===== -->
+<section class="page" id="p-grow">
+  <div class="seg">
+    <div class="seg-item active" onclick="growTab('study')">学习</div>
+    <div class="seg-item" onclick="growTab('read')">阅读</div>
+    <div class="seg-item" onclick="growTab('skill')">技能</div>
+    <div class="seg-item" onclick="growTab('habit')">习惯</div>
+  </div>
+
+  <div id="grow-study">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📚</span>添加学习计划</div></div>
+      <input type="text" id="stName" placeholder="学什么，如 英语" style="margin-bottom:8px">
+      <div class="row"><input type="number" id="stTotal" placeholder="总课时/天" style="flex:1"><input type="number" id="stDone" placeholder="已完成" style="flex:1"></div>
+      <button class="btn btn-block" onclick="addStudy()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>学习计划</div></div>
+      <div id="stList"><div class="empty"><div class="emoji">📚</div>还没有学习计划</div></div>
+    </div>
+  </div>
+
+  <div id="grow-read" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📖</span>添加阅读</div></div>
+      <input type="text" id="rdTitle" placeholder="书名" style="margin-bottom:8px">
+      <div class="row"><select id="rdStatus"><option value="reading">在读</option><option value="done">读完</option><option value="want">想读</option></select><input type="text" id="rdAuthor" placeholder="作者" style="flex:1"></div>
+      <textarea id="rdNote" placeholder="读后感/笔记"></textarea>
+      <button class="btn btn-block" onclick="addRead()" style="margin-top:8px">保存</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📚</span>阅读记录</div></div>
+      <div id="rdList"><div class="empty"><div class="emoji">📖</div>还没有阅读记录</div></div>
+    </div>
+  </div>
+
+  <div id="grow-skill" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🛠️</span>添加技能</div></div>
+      <div class="row"><input type="text" id="skName" placeholder="技能名称"><select id="skLevel" style="flex:0 0 100px"><option value="1">入门</option><option value="2">初级</option><option value="3">中级</option><option value="4">熟练</option><option value="5">精通</option></select></div>
+      <button class="btn btn-block" onclick="addSkill()">添加</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>技能提升</div></div>
+      <div id="skList"><div class="empty"><div class="emoji">🛠️</div>还没有记录</div></div>
+    </div>
+  </div>
+
+  <div id="grow-habit" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🔥</span>新建习惯</div></div>
+      <div class="row"><input type="text" id="hbInput" placeholder="习惯，如 喝水8杯"><button class="btn fixed" onclick="addHabit()" style="min-width:60px">添加</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>今日打卡</div><span class="muted" id="hbCnt">0/0</span></div>
+      <div class="habits" id="hbList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 数据分析 ===== -->
+<section class="page" id="p-data">
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">📊</span>本月消费分析</div></div>
+    <div id="daCat"><div class="empty"><div class="emoji">📊</div>记几天账后出统计</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">📈</span>近7天消费趋势</div></div>
+    <div id="daTrend"><div class="empty"><div class="emoji">📈</div>数据多了出趋势</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">🎯</span>存钱进度</div></div>
+    <div id="daGoal"><div class="empty"><div class="emoji">🎯</div>还没设置目标</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">🔥</span>习惯坚持</div></div>
+    <div id="daHabit"><div class="empty"><div class="emoji">🔥</div>还没建习惯</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><span class="emoji">💡</span>本月生活总结</div></div>
+    <div class="tip pink" id="daTip">多记录一些数据，月底我会帮你生成生活总结和改进建议。</div>
+  </div>
+</section>
+
+<nav class="bottomnav">
+  <div class="bn-inner">
+    <div class="bn-item active" data-page="home"><span class="ic">🏠</span>首页</div>
+    <div class="bn-item" data-page="finance"><span class="ic">💰</span>财务</div>
+    <div class="bn-item" data-page="home2"><span class="ic">🏠</span>家庭</div>
+    <div class="bn-item" data-page="food"><span class="ic">🍚</span>饮食</div>
+    <div class="bn-item" data-page="plan"><span class="ic">📅</span>计划</div>
+    <div class="bn-item" data-page="shop"><span class="ic">🛒</span>购物</div>
+    <div class="bn-item" data-page="grow"><span class="ic">🌱</span>成长</div>
+    <div class="bn-item" data-page="data"><span class="ic">📊</span>分析</div>
+  </div>
+</nav>
+
+<script>
+const S={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const today=()=>new Date().toISOString().slice(0,10);
+const monthKey=()=>new Date().toISOString().slice(0,7);
+const catName={food:'餐饮',drink:'饮品奶茶',transport:'交通',rent:'房租',utility:'水电费',shop:'购物',ent:'娱乐',medical:'医疗',other:'其他'};
+const mealName={breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
+
+function go(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  document.querySelectorAll('.bn-item').forEach(n=>n.classList.toggle('active',n.dataset.page===p));
+  const t={home:'首页',finance:'财务管理',home2:'家庭生活',food:'饮食管理',plan:'日常计划',shop:'购物管理',grow:'个人成长',data:'数据分析'};
+  document.getElementById('topDate').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  window.scrollTo(0,0);
+  if(p==='home')renderHome();if(p==='finance')renderFin();if(p==='home2')renderHome2();
+  if(p==='food')renderFood();if(p==='plan')renderPlan();if(p==='shop')renderShop();
+  if(p==='grow')renderGrow();if(p==='data')renderData();
+}
+document.querySelectorAll('.bn-item').forEach(n=>n.addEventListener('click',()=>go(n.dataset.page)));
+
+// ===== 首页 =====
+function renderHome(){
+  const exp=S.get('wb_exp',{})[today()]||[];
+  const inc=S.get('wb_inc',{})[monthKey()]||[];
+  const todos=S.get('wb_todo',{})[today()]||[];
+  let bdg=Number(S.get('wb_bdg',4000));if(isNaN(bdg)||bdg<=0)bdg=4000;
+  const goal=S.get('wb_goal',null);
+  const spent=exp.reduce((s,e)=>s+Number(e.amount),0);
+  const monthExp=Object.values(S.get('wb_exp',{})).flat().filter(e=>e.date&&e.date.slice(0,7)===monthKey()).reduce((s,e)=>s+Number(e.amount),0);
+  // 简化：本月支出从所有记录里筛当月
+  const allExp=S.get('wb_exp',{});
+  let mExp=0;Object.entries(allExp).forEach(([k,arr])=>{if(k.slice(0,7)===monthKey())arr.forEach(e=>mExp+=Number(e.amount))});
+  const done=todos.filter(t=>t.done).length;
+  document.getElementById('hSpent').textContent='¥'+spent;
+  document.getElementById('hTodo').textContent=done+'/'+todos.length;
+  document.getElementById('hBudget').textContent='¥'+(bdg-mExp);
+  document.getElementById('hBudgetPct').textContent='支出 '+(bdg?Math.round(mExp/bdg*100):0)+'%';
+  document.getElementById('hSave').textContent='¥'+(goal?goal.saved:0);
+  document.getElementById('hSavePct').textContent='目标 '+(goal?Math.round(goal.saved/goal.amount*100):0)+'%';
+
+  const tl=document.getElementById('hTodoList');
+  if(todos.length===0)tl.innerHTML='<div class="empty"><div class="emoji">🌸</div>今天还没有计划</div>';
+  else{
+    const imp=todos.filter(t=>t.level==='important'),nor=todos.filter(t=>t.level==='normal'),life=todos.filter(t=>t.level==='life');
+    let h='';
+    if(imp.length)h+='<div class="tl-section"><div class="tl-section-title">🔴 重要</div>'+imp.map(t=>todoLi(t)).join('')+'</div>';
+    if(nor.length)h+='<div class="tl-section"><div class="tl-section-title">🟡 普通</div>'+nor.map(t=>todoLi(t)).join('')+'</div>';
+    if(life.length)h+='<div class="tl-section"><div class="tl-section-title">🟢 生活</div>'+life.map(t=>todoLi(t)).join('')+'</div>';
+    tl.innerHTML=h;
+  }
+  document.getElementById('hTodoCnt').textContent=todos.length+'项';
+
+  // 习惯
+  const habits=S.get('wb_habits',[]);const hs=S.get('wb_hstate',{});
+  const todayDone=habits.filter(h=>hs[h.id]&&hs[h.id].includes(today())).length;
+  document.getElementById('hHabit').textContent=todayDone+'/'+habits.length;
+  const hl=document.getElementById('hHabits');
+  if(habits.length===0)hl.innerHTML='<div class="muted" style="width:100%;text-align:center;padding:6px">去成长页添加习惯</div>';
+  else hl.innerHTML=habits.map(h=>{const d=hs[h.id]&&hs[h.id].includes(today());return `<div class="habit ${d?'done':''}" onclick="toggleHabit(${h.id})"><span class="dot"></span>${h.name}</div>`}).join('');
+
+  // 建议
+  const tip=document.getElementById('hTip');
+  if(spent===0)tip.textContent='开始记录你的生活，我会帮你分析给出建议～';
+  else if(mExp>bdg*0.8)tip.textContent='⚠️ 本月支出已达预算'+Math.round(mExp/bdg*100)+'%，剩余天数要控制了。';
+  else if(exp.filter(e=>e.cat==='food'||e.cat==='drink').reduce((s,e)=>s+Number(e.amount),0)>spent*0.5)tip.textContent='🍜 今天餐饮饮品占比偏高，晚上考虑自己做饭吧。';
+  else tip.textContent='✅ 今天开销控制不错，继续保持！';
+
+  renderWeek();
+}
+function todoLi(t){return `<label class="chk ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})">${t.time?'<span class="muted">'+t.time+'</span>':''} ${t.text}</label>`}
+function renderWeek(){
+  const now=new Date();const day=now.getDay()||7;const monday=new Date(now);monday.setDate(now.getDate()-day+1);
+  const todoAll=S.get('wb_todo',{});let html='';const names=['一','二','三','四','五','六','日'];
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);const k=d.toISOString().slice(0,10);const has=todoAll[k]&&todoAll[k].length>0;const isT=k===today();
+    html+=`<div class="day ${isT?'today':''} ${has&&!isT?'has':''}"><div class="d">${d.getDate()}</div><div class="n">${names[i]}</div></div>`}
+  document.getElementById('weekCal').innerHTML=html;
+  document.getElementById('weekRange').textContent=(monday.getMonth()+1)+'月'+monday.getDate()+'日起';
+}
+
+// ===== 财务 =====
+function finTab(t){document.querySelectorAll('#p-finance .seg-item').forEach((s,i)=>s.classList.toggle('active',['record','budget','goal','income'][i]===t));['record','budget','goal','income'].forEach(x=>document.getElementById('fin-'+x).style.display=x===t?'block':'none');if(t==='budget')renderBdg();if(t==='goal')renderGoal();if(t==='income')renderInc()}
+function addExp(){const item=document.getElementById('expItem').value.trim();const amt=document.getElementById('expAmt').value;const cat=document.getElementById('expCat').value;if(!item||!amt){alert('项目和金额都要填');return}const d=S.get('wb_exp',{});if(!d[today()])d[today()]=[];d[today()].push({id:Date.now(),item,amount:Number(amt),cat,date:today()});S.set('wb_exp',d);document.getElementById('expItem').value='';document.getElementById('expAmt').value='';renderFin();renderHome()}
+function delExp(id){const d=S.get('wb_exp',{});d[today()]=d[today()].filter(e=>e.id!==id);S.set('wb_exp',d);renderFin();renderHome()}
+function renderFin(){const list=S.get('wb_exp',{})[today()]||[];const ul=document.getElementById('expList');const total=list.reduce((s,e)=>s+Number(e.amount),0);document.getElementById('expToday').textContent='¥'+total;
+  if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🧾</div>今天还没有记录</li>';
+  else ul.innerHTML=list.map(e=>`<li class="li"><div class="lf"><span class="tag ${e.cat}">${catName[e.cat]}</span><span class="txt">${e.item}</span></div><div class="lf">¥${e.amount}<span class="del" onclick="delExp(${e.id})">×</span></div></li>`).join('');
+  // 本月分类
+  const all=S.get('wb_exp',{});let mTotal=0;const stats={};
+  Object.entries(all).forEach(([k,arr])=>{if(k.slice(0,7)===monthKey())arr.forEach(e=>{stats[e.cat]=(stats[e.cat]||0)+Number(e.amount);mTotal+=Number(e.amount)})});
+  document.getElementById('expMonth').textContent='¥'+mTotal;
+  const cs=document.getElementById('expCats');
+  if(mTotal===0)cs.innerHTML='<div class="empty"><div class="emoji">📊</div>记几笔后出图表</div>';
+  else cs.innerHTML=Object.entries(stats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const p=(v/mTotal*100).toFixed(0);return `<div class="cat-row"><div class="cat-head"><span><span class="tag ${k}">${catName[k]}</span></span><span>¥${v} · ${p}%</span></div><div class="cat-bar"><div class="cat-fill ${k}" style="width:${p}%"></div></div></div>`}).join('');
+  renderBdg();renderGoal();
+}
+function saveBdg(){const v=Number(document.getElementById('bdgInput').value);if(!v||v<0){alert('请输入有效的预算金额');return}S.set('wb_bdg',v);renderBdg();renderHome()}
+function renderBdg(){let bdg=Number(S.get('wb_bdg',4000));if(isNaN(bdg)||bdg<=0)bdg=4000;document.getElementById('bdgInput').value=bdg;const all=S.get('wb_exp',{});let mExp=0;Object.entries(all).forEach(([k,arr])=>{if(k.slice(0,7)===monthKey())arr.forEach(e=>mExp+=Number(e.amount))});
+  const inc=S.get('wb_inc',{})[monthKey()]||[];const mInc=inc.reduce((s,e)=>s+Number(e.amount),0);
+  const p=Math.min(100,bdg?(mExp/bdg*100):0);
+  document.getElementById('bdgFill').style.width=p+'%';document.getElementById('bdgSpent').textContent='已花 ¥'+mExp;document.getElementById('bdgRemain').textContent='剩余 ¥'+(Number(bdg)-Number(mExp));
+  document.getElementById('bdgIncome').textContent='¥'+mInc;document.getElementById('bdgExpense').textContent='¥'+mExp;document.getElementById('bdgNet').textContent='¥'+(mInc-mExp);document.getElementById('bdgRate').textContent=mInc?Math.round(mExp/mInc*100)+'%':'0%';
+  const tip=document.getElementById('bdgTip');if(mExp===0)tip.textContent='设置预算后联动显示。';else if(p>80)tip.textContent='⚠️ 本月预算用了'+p.toFixed(0)+'%，注意控制。';else tip.textContent='✅ 本月用了'+p.toFixed(0)+'%预算，节奏还行。';
+}
+function saveGoal(){const name=document.getElementById('goalName').value.trim();const amt=Number(document.getElementById('goalAmt').value);const saved=Number(document.getElementById('goalSaved').value)||0;if(!name||!amt)return;S.set('wb_goal',{name,amount:amt,saved});renderGoal();renderHome()}
+function renderGoal(){const goal=S.get('wb_goal',null);if(goal){const p=Math.min(100,goal.amount?(goal.saved/goal.amount*100):0);document.getElementById('gName').textContent=goal.name;document.getElementById('gNum').textContent=`¥${goal.saved} / ¥${goal.amount}`;document.getElementById('gFill').style.width=p+'%';document.getElementById('gPct').textContent=p.toFixed(0)+'%';document.getElementById('gRemain').textContent='还差 ¥'+(goal.amount-goal.saved)}}
+function addInc(){const item=document.getElementById('incItem').value.trim();const amt=document.getElementById('incAmt').value;const cat=document.getElementById('incCat').value;if(!item||!amt)return;const d=S.get('wb_inc',{});if(!d[monthKey()])d[monthKey()]=[];d[monthKey()].push({id:Date.now(),item,amount:Number(amt),cat});S.set('wb_inc',d);document.getElementById('incItem').value='';document.getElementById('incAmt').value='';renderInc();renderBdg();renderHome()}
+function delInc(id){const d=S.get('wb_inc',{});d[monthKey()]=d[monthKey()].filter(e=>e.id!==id);S.set('wb_inc',d);renderInc();renderBdg();renderHome()}
+function renderInc(){const list=S.get('wb_inc',{})[monthKey()]||[];const total=list.reduce((s,e)=>s+Number(e.amount),0);document.getElementById('incTotal').textContent='¥'+total;const ul=document.getElementById('incList');const cn={salary:'工资',subsidy:'补贴',other:'其他'};
+  if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">💵</div>本月还没有收入</li>';
+  else ul.innerHTML=list.map(e=>`<li class="li"><div class="lf"><span class="tag income">${cn[e.cat]}</span>${e.item}</div><div class="lf">¥${e.amount}<span class="del" onclick="delInc(${e.id})">×</span></div></li>`).join('')}
+
+// ===== 家庭 =====
+function homeTab(t){document.querySelectorAll('#p-home2 .seg-item').forEach((s,i)=>s.classList.toggle('active',['info','goods','maintain'][i]===t));['info','goods','maintain'].forEach(x=>document.getElementById('home-'+x).style.display=x===t?'block':'none');if(t==='goods')renderGoods();if(t==='maintain')renderMaintain()}
+function saveHouse(){S.set('wb_house',{rent:+document.getElementById('hRent').value||0,water:+document.getElementById('hWater').value||0,elec:+document.getElementById('hElec').value||0,net:+document.getElementById('hNet').value||0,mgnt:+document.getElementById('hMgnt').value||0});renderHome2()}
+function renderHome2(){const h=S.get('wb_house',{rent:0,water:0,elec:0,net:0,mgnt:0});document.getElementById('hRent').value=h.rent||'';document.getElementById('hWater').value=h.water||'';document.getElementById('hElec').value=h.elec||'';document.getElementById('hNet').value=h.net||'';document.getElementById('hMgnt').value=h.mgnt||'';const total=h.rent+h.water+h.elec+h.net+h.mgnt;document.getElementById('hTotal').textContent='¥'+total;renderGoods();renderMaintain()}
+function addGoods(){const name=document.getElementById('gdName').value.trim();const cat=document.getElementById('gdCat').value;const date=document.getElementById('gdDate').value;const status=document.getElementById('gdStatus').value;if(!name)return;const d=S.get('wb_goods',[]);d.unshift({id:Date.now(),name,cat,date,status});S.set('wb_goods',d);document.getElementById('gdName').value='';document.getElementById('gdDate').value='';renderGoods()}
+function delGoods(id){S.set('wb_goods',S.get('wb_goods',[]).filter(g=>g.id!==id));renderGoods()}
+function renderGoods(){const list=S.get('wb_goods',[]);const cn={kitchen:'厨房',clean:'清洁',storage:'收纳',elec:'电器'};const el=document.getElementById('gdList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">📦</div>还没有记录</div>';else el.innerHTML=list.map(g=>`<div class="li"><div class="lf"><span class="tag">${cn[g.cat]}</span><div><div>${g.name}</div><div class="muted" style="font-size:11px">${g.date||'未填'} · ${g.status==='bought'?'已购买':'待购买'}</div></div></div><span class="del" onclick="delGoods(${g.id})">×</span></div>`).join('')}
+function addMaintain(){const name=document.getElementById('mtName').value.trim();const cycle=Number(document.getElementById('mtCycle').value);if(!name)return;const d=S.get('wb_maintain',[]);d.push({id:Date.now(),name,cycle,lastDone:today()});S.set('wb_maintain',d);document.getElementById('mtName').value='';renderMaintain()}
+function delMaintain(id){S.set('wb_maintain',S.get('wb_maintain',[]).filter(m=>m.id!==id));renderMaintain()}
+function doneMaintain(id){const d=S.get('wb_maintain',[]);const m=d.find(x=>x.id===id);if(m){m.lastDone=today();S.set('wb_maintain',d);renderMaintain()}}
+function renderMaintain(){const list=S.get('wb_maintain',[]);const ul=document.getElementById('mtList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🧹</div>还没有维护提醒</li>';else ul.innerHTML=list.map(m=>{const days=Math.floor((new Date()-new Date(m.lastDone))/86400000);const due=days>=m.cycle;return `<li class="li"><div class="lf"><div><div>${m.name}</div><div class="muted" style="font-size:11px">${m.cycle}天一次 · 上次${m.lastDone} ${due?'<span style="color:var(--red)">该做了</span>':'还剩'+(m.cycle-days)+'天'}</div></div></div><div class="lf"><button class="btn btn-ghost fixed" style="min-width:50px;padding:5px 8px;font-size:11px" onclick="doneMaintain(${m.id})">完成</button><span class="del" onclick="delMaintain(${m.id})">×</span></div></li>`}).join('')}
+
+// ===== 饮食 =====
+function foodTab(t){document.querySelectorAll('#p-food .seg-item').forEach((s,i)=>s.classList.toggle('active',['plan','recipe','list','record'][i]===t));['plan','recipe','list','record'].forEach(x=>document.getElementById('food-'+x).style.display=x===t?'block':'none');if(t==='plan')renderMealPlan();if(t==='recipe')renderRecipe();if(t==='list')renderFoodList();if(t==='record')renderFoodRec()}
+function renderMealPlan(){const plan=S.get('wb_mealplan',{});const days=['周一','周二','周三','周四','周五','周六','周日'];const dayKey={0:7};let html='';for(let i=1;i<=7;i++){const text=plan[i]||'';html+=`<div class="li" style="flex-direction:column;align-items:flex-start;gap:4px"><div class="flex-b" style="width:100%"><strong>${days[i-1]}</strong>${text?`<span class="del" onclick="delMeal(${i})">×</span>`:''}</div><div class="muted" style="font-size:12px">${text||'还没规划'}</div></div>`}document.getElementById('mealPlan').innerHTML=html||'<div class="empty"><div class="emoji">📅</div>还没有安排，去上面添加</div>'}
+function delMeal(day){const p=S.get('wb_mealplan',{});delete p[day];S.set('wb_mealplan',p);renderMealPlan()}
+function addMeal(){const day=document.getElementById('mpDay').value;const v=document.getElementById('mpText').value.trim();if(!v)return;const p=S.get('wb_mealplan',{});p[day]=v;S.set('wb_mealplan',p);document.getElementById('mpText').value='';renderMealPlan()}
+function addRecipe(){const name=document.getElementById('rcName').value.trim();const cost=document.getElementById('rcCost').value;const time=document.getElementById('rcTime').value;const ing=document.getElementById('rcIng').value;if(!name)return;const d=S.get('wb_recipe',[]);d.unshift({id:Date.now(),name,cost,time,ing});S.set('wb_recipe',d);document.getElementById('rcName').value='';document.getElementById('rcCost').value='';document.getElementById('rcTime').value='';document.getElementById('rcIng').value='';renderRecipe()}
+function delRecipe(id){S.set('wb_recipe',S.get('wb_recipe',[]).filter(r=>r.id!==id));renderRecipe()}
+function renderRecipe(){const list=S.get('wb_recipe',[]);const el=document.getElementById('rcList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">📖</div>还没有收藏菜谱</div>';else el.innerHTML=list.map(r=>`<div class="recipe"><div class="rname">${r.name}</div><div class="rmeta">💰约¥${r.cost||'?'} · ⏱️${r.time||'?'}</div><div class="ring">${r.ing}</div><div style="text-align:right"><span class="del" onclick="delRecipe(${r.id})">×</span></div></div>`).join('')}
+function addFoodList(){const v=document.getElementById('flInput').value.trim();if(!v)return;const d=S.get('wb_foodlist',[]);d.push({id:Date.now(),text:v,done:false});S.set('wb_foodlist',d);document.getElementById('flInput').value='';renderFoodList()}
+function toggleFoodList(id){const d=S.get('wb_foodlist',[]);const i=d.find(x=>x.id===id);if(i){i.done=!i.done;S.set('wb_foodlist',d);renderFoodList()}}
+function delFoodList(id){S.set('wb_foodlist',S.get('wb_foodlist',[]).filter(x=>x.id!==id));renderFoodList()}
+function renderFoodList(){const list=S.get('wb_foodlist',[]);document.getElementById('flCount').textContent=list.filter(i=>!i.done).length+'项';const ul=document.getElementById('flList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🥬</div>清单是空的</li>';else ul.innerHTML=list.map(i=>`<li class="li"><label class="chk ${i.done?'done':''}"><input type="checkbox" ${i.done?'checked':''} onchange="toggleFoodList(${i.id})">${i.text}</label><span class="del" onclick="delFoodList(${i.id})">×</span></li>`).join('')}
+function addFoodRec(){const name=document.getElementById('frName').value.trim();const cost=document.getElementById('frCost').value;const meal=document.getElementById('frMeal').value;if(!name)return;const d=S.get('wb_foodrec',{});if(!d[today()])d[today()]=[];d[today()].push({id:Date.now(),name,cost:Number(cost)||0,meal});S.set('wb_foodrec',d);document.getElementById('frName').value='';document.getElementById('frCost').value='';renderFoodRec()}
+function delFoodRec(id){const d=S.get('wb_foodrec',{});d[today()]=d[today()].filter(e=>e.id!==id);S.set('wb_foodrec',d);renderFoodRec()}
+function renderFoodRec(){const list=S.get('wb_foodrec',{})[today()]||[];const total=list.reduce((s,e)=>s+e.cost,0);document.getElementById('frTotal').textContent='¥'+total;const ul=document.getElementById('frList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🍽️</div>今天还没有记录</li>';else ul.innerHTML=list.map(e=>`<li class="li"><div class="lf"><span class="tag">${mealName[e.meal]}</span>${e.name}</div><div class="lf">¥${e.cost}<span class="del" onclick="delFoodRec(${e.id})">×</span></div></li>`).join('')}
+
+// ===== 计划 =====
+function planTab(t){document.querySelectorAll('#p-plan .seg-item').forEach((s,i)=>s.classList.toggle('active',['today','week','month','todo'][i]===t));['today','week','month','todo'].forEach(x=>document.getElementById('plan-'+x).style.display=x===t?'block':'none');if(t==='today')renderToday();if(t==='week')renderWeek2();if(t==='month')renderMonth();if(t==='todo')renderTodoItem()}
+function addTodo(){const text=document.getElementById('tdInput').value.trim();const time=document.getElementById('tdTime').value;const level=document.getElementById('tdLevel').value;if(!text)return;const d=S.get('wb_todo',{});if(!d[today()])d[today()]=[];d[today()].push({id:Date.now(),text,time,level,done:false});S.set('wb_todo',d);document.getElementById('tdInput').value='';document.getElementById('tdTime').value='';renderToday();renderHome()}
+function toggleTodo(id){const d=S.get('wb_todo',{});const t=d[today()].find(x=>x.id===id);if(t){t.done=!t.done;S.set('wb_todo',d);renderToday();renderHome()}}
+function delTodo(id){const d=S.get('wb_todo',{});d[today()]=d[today()].filter(x=>x.id!==id);S.set('wb_todo',d);renderToday();renderHome()}
+function renderToday(){const list=S.get('wb_todo',{})[today()]||[];const imp=list.filter(t=>t.level==='important'),nor=list.filter(t=>t.level==='normal'),life=list.filter(t=>t.level==='life');
+  const render=(arr,id)=>{const el=document.getElementById(id);if(arr.length===0)el.innerHTML='<li class="empty"><div class="emoji">·</div>暂无</li>';else el.innerHTML=arr.map(t=>`<li class="li"><label class="chk ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})">${t.time?'<span class="muted">'+t.time+'</span>':''} ${t.text}</label><span class="del" onclick="delTodo(${t.id})">×</span></li>`).join('')};
+  render(imp,'tdImportant');render(nor,'tdNormal');render(life,'tdLife')}
+function addWeek(){const text=document.getElementById('wkInput').value.trim();const day=document.getElementById('wkDay').value;if(!text)return;const d=S.get('wb_week',[]);d.push({id:Date.now(),text,day,done:false});S.set('wb_week',d);document.getElementById('wkInput').value='';renderWeek2()}
+function toggleWeek(id){const d=S.get('wb_week',[]);const i=d.find(x=>x.id===id);if(i){i.done=!i.done;S.set('wb_week',d);renderWeek2()}}
+function delWeek(id){S.set('wb_week',S.get('wb_week',[]).filter(x=>x.id!==id));renderWeek2()}
+function renderWeek2(){const list=S.get('wb_week',[]);const days={1:'周一',2:'周二',3:'周三',4:'周四',5:'周五',6:'周六',0:'周日'};const el=document.getElementById('wkList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">📅</div>本周还没有计划</div>';else el.innerHTML=list.map(w=>`<div class="li"><label class="chk ${w.done?'done':''}"><input type="checkbox" ${w.done?'checked':''} onchange="toggleWeek(${w.id})"><span class="tag">${days[w.day]}</span>${w.text}</label><span class="del" onclick="delWeek(${w.id})">×</span></div>`).join('')}
+function addMonth(){const text=document.getElementById('moInput').value.trim();const target=Number(document.getElementById('moTarget').value)||0;if(!text)return;const d=S.get('wb_month',[]);d.push({id:Date.now(),text,target,done:0,finished:false});S.set('wb_month',d);document.getElementById('moInput').value='';document.getElementById('moTarget').value='';renderMonth()}
+function updateMonth(id,v){const d=S.get('wb_month',[]);const m=d.find(x=>x.id===id);if(m){m.done=Number(v)||0;m.finished=m.target&&m.done>=m.target;S.set('wb_month',d);renderMonth()}}
+function delMonth(id){S.set('wb_month',S.get('wb_month',[]).filter(x=>x.id!==id));renderMonth()}
+function renderMonth(){const list=S.get('wb_month',[]);const el=document.getElementById('moList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">🎯</div>还没设置月目标</div>';else el.innerHTML=list.map(m=>{const p=m.target?Math.min(100,m.done/m.target*100):0;return `<div class="li" style="flex-direction:column;align-items:flex-start;gap:6px"><div class="flex-b" style="width:100%"><strong>${m.finished?'✅':''} ${m.text}</strong><span class="del" onclick="delMonth(${m.id})">×</span></div><div class="flex-b" style="width:100%;font-size:12px"><span>进度 ${m.done}/${m.target}</span><span>${p.toFixed(0)}%</span></div><div class="pbar" style="width:100%"><div class="pfill" style="width:${p}%"></div></div><input type="number" placeholder="更新进度" style="margin-top:4px" onchange="updateMonth(${m.id},this.value)"></div>`}).join('')}
+function addTodoItem(){const v=document.getElementById('todoInput').value.trim();if(!v)return;const d=S.get('wb_todoitem',[]);d.push({id:Date.now(),text:v,done:false});S.set('wb_todoitem',d);document.getElementById('todoInput').value='';renderTodoItem()}
+function toggleTodoItem(id){const d=S.get('wb_todoitem',[]);const i=d.find(x=>x.id===id);if(i){i.done=!i.done;S.set('wb_todoitem',d);renderTodoItem()}}
+function delTodoItem(id){S.set('wb_todoitem',S.get('wb_todoitem',[]).filter(x=>x.id!==id));renderTodoItem()}
+function renderTodoItem(){const list=S.get('wb_todoitem',[]);const ul=document.getElementById('todoItemList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">📝</div>暂无待办</li>';else ul.innerHTML=list.map(t=>`<li class="li"><label class="chk ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodoItem(${t.id})">${t.text}</label><span class="del" onclick="delTodoItem(${t.id})">×</span></li>`).join('')}
+
+// ===== 购物 =====
+function addShop(){const name=document.getElementById('spName').value.trim();const price=document.getElementById('spPrice').value;const cat=document.getElementById('spCat').value;if(!name)return;const d=S.get('wb_shopmg',[]);d.push({id:Date.now(),name,price:Number(price)||0,cat,date:today(),rate:0});S.set('wb_shopmg',d);document.getElementById('spName').value='';document.getElementById('spPrice').value='';renderShop()}
+function delShop(id){S.set('wb_shopmg',S.get('wb_shopmg',[]).filter(x=>x.id!==id));renderShop()}
+function moveShop(id,cat){const d=S.get('wb_shopmg',[]);const i=d.find(x=>x.id===id);if(i){i.cat=cat;if(cat==='done')i.date=today();S.set('wb_shopmg',d);renderShop()}}
+function rateShop(id,r){const d=S.get('wb_shopmg',[]);const i=d.find(x=>x.id===id);if(i){i.rate=r;S.set('wb_shopmg',d);renderShop()}}
+function renderShop(){const list=S.get('wb_shopmg',[]);const need=list.filter(i=>i.cat==='need'),want=list.filter(i=>i.cat==='want'),done=list.filter(i=>i.cat==='done');
+  document.getElementById('spNeedCnt').textContent=need.length+'项';document.getElementById('spWantCnt').textContent=want.length+'项';document.getElementById('spDoneCnt').textContent=done.length+'项';
+  const render=(arr,id,canMove)=>{const el=document.getElementById(id);if(arr.length===0)el.innerHTML='<li class="empty"><div class="emoji">·</div>暂无</li>';else el.innerHTML=arr.map(i=>{const stars=i.rate?'<span class="stars">'+'★'.repeat(i.rate)+'</span>':'';const moveBtn=canMove?`<button class="btn btn-ghost fixed" style="min-width:50px;padding:4px 8px;font-size:11px" onclick="moveShop(${i.id},'done')">已买</button>`:'';return `<li class="li"><div class="lf"><div><div>${i.name}</div><div class="muted" style="font-size:11px">¥${i.price} ${stars}</div></div></div><div class="lf">${moveBtn}<span class="del" onclick="delShop(${i.id})">×</span></div></li>`}).join('')};
+  render(need,'spNeed',true);render(want,'spWant',true);render(done,'spDone',false)}
+
+// ===== 成长 =====
+function growTab(t){document.querySelectorAll('#p-grow .seg-item').forEach((s,i)=>s.classList.toggle('active',['study','read','skill','habit'][i]===t));['study','read','skill','habit'].forEach(x=>document.getElementById('grow-'+x).style.display=x===t?'block':'none');if(t==='study')renderStudy();if(t==='read')renderRead();if(t==='skill')renderSkill();if(t==='habit')renderHabit()}
+function addStudy(){const name=document.getElementById('stName').value.trim();const total=Number(document.getElementById('stTotal').value)||0;const done=Number(document.getElementById('stDone').value)||0;if(!name)return;const d=S.get('wb_study',[]);d.push({id:Date.now(),name,total,done});S.set('wb_study',d);document.getElementById('stName').value='';document.getElementById('stTotal').value='';document.getElementById('stDone').value='';renderStudy()}
+function updateStudy(id,v){const d=S.get('wb_study',[]);const s=d.find(x=>x.id===id);if(s){s.done=Number(v)||0;S.set('wb_study',d);renderStudy()}}
+function delStudy(id){S.set('wb_study',S.get('wb_study',[]).filter(x=>x.id!==id));renderStudy()}
+function renderStudy(){const list=S.get('wb_study',[]);const el=document.getElementById('stList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">📚</div>还没有计划</div>';else el.innerHTML=list.map(s=>{const p=s.total?Math.min(100,s.done/s.total*100):0;return `<div class="li" style="flex-direction:column;align-items:flex-start;gap:6px"><div class="flex-b" style="width:100%"><strong>${s.name}</strong><span class="del" onclick="delStudy(${s.id})">×</span></div><div class="flex-b" style="width:100%;font-size:12px"><span>${s.done}/${s.total}</span><span>${p.toFixed(0)}%</span></div><div class="pbar" style="width:100%"><div class="pfill" style="width:${p}%"></div></div><input type="number" placeholder="更新已完成" style="margin-top:4px" onchange="updateStudy(${s.id},this.value)"></div>`}).join('')}
+function addRead(){const title=document.getElementById('rdTitle').value.trim();const status=document.getElementById('rdStatus').value;const author=document.getElementById('rdAuthor').value.trim();const note=document.getElementById('rdNote').value.trim();if(!title)return;const d=S.get('wb_read',[]);d.unshift({id:Date.now(),title,status,author,note,date:today()});S.set('wb_read',d);document.getElementById('rdTitle').value='';document.getElementById('rdAuthor').value='';document.getElementById('rdNote').value='';renderRead()}
+function delRead(id){S.set('wb_read',S.get('wb_read',[]).filter(x=>x.id!==id));renderRead()}
+function renderRead(){const list=S.get('wb_read',[]);const sn={reading:'在读',done:'读完',want:'想读'};const el=document.getElementById('rdList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">📖</div>还没有记录</div>';else el.innerHTML=list.map(r=>`<div class="book"><div class="flex-b"><div class="btitle">${r.title}</div><span class="del" onclick="delRead(${r.id})">×</span></div><div class="bmeta"><span class="tag">${sn[r.status]}</span> ${r.author||''} · ${r.date}</div>${r.note?`<div class="bnote">${r.note}</div>`:''}</div>`).join('')}
+function addSkill(){const name=document.getElementById('skName').value.trim();const level=Number(document.getElementById('skLevel').value);if(!name)return;const d=S.get('wb_skill',[]);d.push({id:Date.now(),name,level});S.set('wb_skill',d);document.getElementById('skName').value='';renderSkill()}
+function upSkill(id){const d=S.get('wb_skill',[]);const s=d.find(x=>x.id===id);if(s&&s.level<5){s.level++;S.set('wb_skill',d);renderSkill()}}
+function delSkill(id){S.set('wb_skill',S.get('wb_skill',[]).filter(x=>x.id!==id));renderSkill()}
+function renderSkill(){const list=S.get('wb_skill',[]);const ln={1:'入门',2:'初级',3:'中级',4:'熟练',5:'精通'};const el=document.getElementById('skList');if(list.length===0)el.innerHTML='<div class="empty"><div class="emoji">🛠️</div>还没有记录</div>';else el.innerHTML=list.map(s=>`<div class="li"><div class="lf"><div><div>${s.name}</div><div class="stars">${'★'.repeat(s.level)}${'☆'.repeat(5-s.level)}</div><div class="muted" style="font-size:11px">${ln[s.level]}</div></div></div><div class="lf">${s.level<5?`<button class="btn btn-ghost fixed" style="min-width:50px;padding:4px 8px;font-size:11px" onclick="upSkill(${s.id})">升级</button>`:''}<span class="del" onclick="delSkill(${s.id})">×</span></div></div>`).join('')}
+function addHabit(){const v=document.getElementById('hbInput').value.trim();if(!v)return;const d=S.get('wb_habits',[]);d.push({id:Date.now(),name:v});S.set('wb_habits',d);document.getElementById('hbInput').value='';renderHabit();renderHome()}
+function toggleHabit(id){const hs=S.get('wb_hstate',{});if(!hs[id])hs[id]=[];const i=hs[id].indexOf(today());if(i>=0)hs[id].splice(i,1);else hs[id].push(today());S.set('wb_hstate',hs);renderHabit();renderHome()}
+function delHabit(id){S.set('wb_habits',S.get('wb_habits',[]).filter(h=>h.id!==id));renderHabit();renderHome()}
+function renderHabit(){const habits=S.get('wb_habits',[]);const hs=S.get('wb_hstate',{});const todayDone=habits.filter(h=>hs[h.id]&&hs[h.id].includes(today())).length;document.getElementById('hbCnt').textContent=todayDone+'/'+habits.length;const el=document.getElementById('hbList');if(habits.length===0)el.innerHTML='<div class="muted" style="width:100%;text-align:center;padding:6px">还没有习惯</div>';else el.innerHTML=habits.map(h=>{const d=hs[h.id]&&hs[h.id].includes(today());const streak=hs[h.id]?hs[h.id].length:0;return `<div class="habit ${d?'done':''}" onclick="toggleHabit(${h.id})"><span class="dot"></span>${h.name} <span class="muted" style="font-size:10px">${streak}天</span></div>`}).join('')}
+
+// ===== 数据分析 =====
+function renderData(){
+  const all=S.get('wb_exp',{});let mTotal=0;const stats={};let dayTotal=0;
+  Object.entries(all).forEach(([k,arr])=>{if(k.slice(0,7)===monthKey()){arr.forEach(e=>{stats[e.cat]=(stats[e.cat]||0)+Number(e.amount);mTotal+=Number(e.amount)})}if(k===today())dayTotal=arr.reduce((s,e)=>s+Number(e.amount),0)});
+  const dc=document.getElementById('daCat');if(mTotal===0)dc.innerHTML='<div class="empty"><div class="emoji">📊</div>记几天账后出统计</div>';else dc.innerHTML=Object.entries(stats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const p=(v/mTotal*100).toFixed(0);return `<div class="cat-row"><div class="cat-head"><span><span class="tag ${k}">${catName[k]}</span></span><span>¥${v} · ${p}%</span></div><div class="cat-bar"><div class="cat-fill ${k}" style="width:${p}%"></div></div></div>`}).join('');
+  // 7天趋势
+  const dt=document.getElementById('daTrend');const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=d.toISOString().slice(0,10);const amt=(all[k]||[]).reduce((s,e)=>s+Number(e.amount),0);days.push({amt,label:(d.getMonth()+1)+'/'+d.getDate()})}
+  const max=Math.max(...days.map(d=>d.amt),1);
+  dt.innerHTML=`<div class="bar-chart">${days.map(d=>`<div class="bar-col"><div class="bar-val">${d.amt?'\xa5'+d.amt:''}</div><div class="bar" style="height:${Math.max(3,d.amt/max*80)}px"></div><div class="bar-label">${d.label}</div></div>`).join('')}</div>`;
+  // 目标
+  const goal=S.get('wb_goal',null);const dg=document.getElementById('daGoal');if(!goal)dg.innerHTML='<div class="empty"><div class="emoji">🎯</div>还没设置目标</div>';else{const p=Math.min(100,goal.amount?(goal.saved/goal.amount*100):0);dg.innerHTML=`<div style="font-size:14px;font-weight:600;margin-bottom:8px">${goal.name}</div><div class="big" style="color:var(--primary)">${p.toFixed(0)}%</div><div class="pbar" style="margin:10px 0"><div class="pfill" style="width:${p}%"></div></div><div class="ptext"><span>已存 ¥${goal.saved}</span><span>目标 ¥${goal.amount}</span></div>`}
+  // 习惯
+  const habits=S.get('wb_habits',[]);const hs=S.get('wb_hstate',{});const dh=document.getElementById('daHabit');if(habits.length===0)dh.innerHTML='<div class="empty"><div class="emoji">🔥</div>还没建习惯</div>';else dh.innerHTML=habits.map(h=>{const days=hs[h.id]?hs[h.id].length:0;return `<div class="li"><div class="lf">🔥 ${h.name}</div><span class="muted">坚持 ${days} 天</span></div>`}).join('');
+  // 总结
+  const tip=document.getElementById('daTip');const inc=S.get('wb_inc',{})[monthKey()]||[];const mInc=inc.reduce((s,e)=>s+Number(e.amount),0);
+  if(mTotal===0&&habits.length===0)tip.textContent='多记录一些数据，月底我会帮你生成生活总结和改进建议。';
+  else{let t='📊 本月生活总结：\n';if(mTotal>0){const maxCat=Object.entries(stats).sort((a,b)=>b[1]-a[1])[0];t+=`花了¥${mTotal}，最大开销是${catName[maxCat[0]]}（${(maxCat[1]/mTotal*100).toFixed(0)}%）。`;if(maxCat[0]==='food'||maxCat[0]==='drink')t+='餐饮偏高，建议多做饭。';if(maxCat[0]==='shop')t+='购物偏多，下单前冷静3天。'}if(mInc>0)t+=`收入¥${mInc}，${mInc>mTotal?'能存下¥'+(mInc-mTotal)+'，不错！':'支出超了，要控制。'}`;if(habits.length>0){const best=habits.reduce((a,h)=>{const d=hs[h.id]?hs[h.id].length:0;return d>a.d?{h,d}:a},{h:null,d:0});if(best.h)t+=`习惯里${best.h.name}坚持最好，${best.d}天。`}tip.textContent=t}
+}
+
+document.getElementById('topDate').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+renderHome();
+</script>
+</body>
+</html>
