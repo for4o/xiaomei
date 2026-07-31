@@ -147,6 +147,7 @@ textarea{resize:none;min-height:70px}
   <div class="card">
     <div class="card-head"><div class="card-title"><span class="emoji">📅</span>本周一览</div><span class="muted" id="weekRange"></span></div>
     <div class="week" id="weekCal"></div>
+    <div id="dayDetail"></div>
   </div>
 
   <div class="card">
@@ -643,10 +644,30 @@ function todoLi(t){return `<label class="chk ${t.done?'done':''}"><input type="c
 function renderWeek(){
   const now=new Date();const day=now.getDay()||7;const monday=new Date(now);monday.setDate(now.getDate()-day+1);
   const todoAll=S.get('wb_todo',{});let html='';const names=['一','二','三','四','五','六','日'];
-  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);const k=d.toISOString().slice(0,10);const has=todoAll[k]&&todoAll[k].length>0;const isT=k===today();
-    html+=`<div class="day ${isT?'today':''} ${has&&!isT?'has':''}"><div class="d">${d.getDate()}</div><div class="n">${names[i]}</div></div>`}
+  const expAll=S.get('wb_exp',{});
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);const k=d.toISOString().slice(0,10);const has=(todoAll[k]&&todoAll[k].length>0)||(expAll[k]&&expAll[k].length>0);const isT=k===today();
+    html+=`<div class="day ${isT?'today':''} ${has&&!isT?'has':''}" onclick="showDayDetail('${k}')" style="cursor:pointer"><div class="d">${d.getDate()}</div><div class="n">${names[i]}</div></div>`}
   document.getElementById('weekCal').innerHTML=html;
   document.getElementById('weekRange').textContent=(monday.getMonth()+1)+'月'+monday.getDate()+'日起';
+}
+function showDayDetail(dateKey){
+  const exp=S.get('wb_exp',{})[dateKey]||[];
+  const todos=S.get('wb_todo',{})[dateKey]||[];
+  const spent=exp.reduce((s,e)=>s+Number(e.amount),0);
+  const done=todos.filter(t=>t.done).length;
+  const d=new Date(dateKey);
+  const dStr=d.getMonth()+1+'月'+d.getDate()+'日';
+  const el=document.getElementById('dayDetail');
+  if(!el)return;
+  let h='<div class="card" id="dayDetailCard" style="margin-top:12px"><div class="card-head"><div class="card-title"><span class="emoji">📅</span>'+dStr+'</div><span class="del" onclick="document.getElementById(\'dayDetailCard\').remove()">×</span></div>';
+  if(exp.length===0&&todos.length===0)h+='<div class="empty"><div class="emoji">🌿</div>这天没有记录</div>';
+  else{
+    if(todos.length>0){h+='<div class="muted" style="margin-bottom:6px">📋 待办 '+done+'/'+todos.length+'</div>';h+=todos.map(t=>'<div class="li"><label class="chk '+(t.done?'done':'')+'">'+t.text+'</label></div>').join('')}
+    if(exp.length>0){h+='<div class="muted" style="margin:10px 0 6px">💰 消费 ¥'+spent+'</div>';h+=exp.map(e=>'<div class="li"><div class="lf"><span class="tag '+e.cat+'">'+catName[e.cat]+'</span>'+e.item+'</div><span>¥'+e.amount+'</span></div>').join('')}
+  }
+  h+='</div>';
+  const old=document.getElementById('dayDetailCard');if(old)old.remove();
+  document.getElementById('weekCal').insertAdjacentHTML('afterend',h);
 }
 
 // ===== 财务 =====
