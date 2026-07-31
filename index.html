@@ -183,10 +183,12 @@ textarea{resize:none;min-height:70px}
         <option value="rent">🏠 房租</option><option value="utility">💡 水电费</option><option value="shop">🛍️ 购物</option>
         <option value="ent">🎮 娱乐</option><option value="medical">💊 医疗</option><option value="other">📦 其他</option>
       </select>
+      <div class="row" style="margin-bottom:8px"><input type="date" id="expDate" value="" style="flex:1"><span class="muted" style="flex:0 0 auto;align-self:center;font-size:11px">可补记往日</span></div>
       <button class="btn btn-block" onclick="addExp()">记一笔</button>
     </div>
     <div class="card">
-      <div class="card-head"><div class="card-title"><span class="emoji">🧾</span>今日消费</div><span class="muted" id="expToday">¥0</span></div>
+      <div class="card-head"><div class="card-title"><span class="emoji">🧾</span>消费记录</div><span class="muted" id="expToday">¥0</span></div>
+      <div class="row" style="margin-bottom:10px"><input type="date" id="expViewDate" value="" style="flex:1" onchange="renderFin()"></div>
       <ul class="list" id="expList"><li class="empty"><div class="emoji">🧾</div>今天还没有记录</li></ul>
     </div>
     <div class="card">
@@ -357,7 +359,8 @@ textarea{resize:none;min-height:70px}
       <div class="row"><select id="frMeal"><option value="breakfast">🌅 早餐</option><option value="lunch">☀️ 午餐</option><option value="dinner">🌙 晚餐</option><option value="snack">🍪 加餐</option></select><button class="btn fixed" onclick="addFoodRec()" style="min-width:60px">记录</button></div>
     </div>
     <div class="card">
-      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>今日饮食</div><span class="muted" id="frTotal">¥0</span></div>
+      <div class="card-head"><div class="card-title"><span class="emoji">📋</span>饮食记录</div><span class="muted" id="frTotal">¥0</span></div>
+      <div class="row" style="margin-bottom:10px"><input type="date" id="frViewDate" value="" style="flex:1" onchange="renderFoodRec()"></div>
       <ul class="list" id="frList"><li class="empty"><div class="emoji">🍽️</div>今天还没有记录</li></ul>
     </div>
   </div>
@@ -631,10 +634,10 @@ function renderWeek(){
 
 // ===== 财务 =====
 function finTab(t){document.querySelectorAll('#p-finance .seg-item').forEach((s,i)=>s.classList.toggle('active',['record','budget','goal','income'][i]===t));['record','budget','goal','income'].forEach(x=>document.getElementById('fin-'+x).style.display=x===t?'block':'none');if(t==='budget')renderBdg();if(t==='goal')renderGoal();if(t==='income')renderInc()}
-function addExp(){const item=document.getElementById('expItem').value.trim();const amt=document.getElementById('expAmt').value;const cat=document.getElementById('expCat').value;if(!item||!amt){alert('项目和金额都要填');return}const d=S.get('wb_exp',{});if(!d[today()])d[today()]=[];d[today()].push({id:Date.now(),item,amount:Number(amt),cat,date:today()});S.set('wb_exp',d);document.getElementById('expItem').value='';document.getElementById('expAmt').value='';renderFin();renderHome()}
-function delExp(id){const d=S.get('wb_exp',{});d[today()]=d[today()].filter(e=>e.id!==id);S.set('wb_exp',d);renderFin();renderHome()}
-function renderFin(){const list=S.get('wb_exp',{})[today()]||[];const ul=document.getElementById('expList');const total=list.reduce((s,e)=>s+Number(e.amount),0);document.getElementById('expToday').textContent='¥'+total;
-  if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🧾</div>今天还没有记录</li>';
+function addExp(){const item=document.getElementById('expItem').value.trim();const amt=document.getElementById('expAmt').value;const cat=document.getElementById('expCat').value;const dateInput=document.getElementById('expDate').value||today();if(!item||!amt){alert('项目和金额都要填');return}const d=S.get('wb_exp',{});if(!d[dateInput])d[dateInput]=[];d[dateInput].push({id:Date.now(),item,amount:Number(amt),cat,date:dateInput});S.set('wb_exp',d);document.getElementById('expItem').value='';document.getElementById('expAmt').value='';document.getElementById('expViewDate').value=dateInput;renderFin();renderHome()}
+function delExp(id){const vd=document.getElementById('expViewDate').value||today();const d=S.get('wb_exp',{});d[vd]=d[vd].filter(e=>e.id!==id);S.set('wb_exp',d);renderFin();renderHome()}
+function renderFin(){const vd=document.getElementById('expViewDate')?document.getElementById('expViewDate').value||today():today();if(document.getElementById('expViewDate')&&!document.getElementById('expViewDate').value)document.getElementById('expViewDate').value=today();const list=S.get('wb_exp',{})[vd]||[];const ul=document.getElementById('expList');const total=list.reduce((s,e)=>s+Number(e.amount),0);document.getElementById('expToday').textContent='¥'+total;
+  if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🧾</div>'+vd+'没有记录</li>';
   else ul.innerHTML=list.map(e=>`<li class="li"><div class="lf"><span class="tag ${e.cat}">${catName[e.cat]}</span><span class="txt">${e.item}</span></div><div class="lf">¥${e.amount}<span class="del" onclick="delExp(${e.id})">×</span></div></li>`).join('');
   // 本月分类
   const all=S.get('wb_exp',{});let mTotal=0;const stats={};
@@ -685,9 +688,9 @@ function addFoodList(){const v=document.getElementById('flInput').value.trim();i
 function toggleFoodList(id){const d=S.get('wb_foodlist',[]);const i=d.find(x=>x.id===id);if(i){i.done=!i.done;S.set('wb_foodlist',d);renderFoodList()}}
 function delFoodList(id){S.set('wb_foodlist',S.get('wb_foodlist',[]).filter(x=>x.id!==id));renderFoodList()}
 function renderFoodList(){const list=S.get('wb_foodlist',[]);document.getElementById('flCount').textContent=list.filter(i=>!i.done).length+'项';const ul=document.getElementById('flList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🥬</div>清单是空的</li>';else ul.innerHTML=list.map(i=>`<li class="li"><label class="chk ${i.done?'done':''}"><input type="checkbox" ${i.done?'checked':''} onchange="toggleFoodList(${i.id})">${i.text}</label><span class="del" onclick="delFoodList(${i.id})">×</span></li>`).join('')}
-function addFoodRec(){const name=document.getElementById('frName').value.trim();const cost=document.getElementById('frCost').value;const meal=document.getElementById('frMeal').value;if(!name)return;const d=S.get('wb_foodrec',{});if(!d[today()])d[today()]=[];d[today()].push({id:Date.now(),name,cost:Number(cost)||0,meal});S.set('wb_foodrec',d);document.getElementById('frName').value='';document.getElementById('frCost').value='';renderFoodRec()}
-function delFoodRec(id){const d=S.get('wb_foodrec',{});d[today()]=d[today()].filter(e=>e.id!==id);S.set('wb_foodrec',d);renderFoodRec()}
-function renderFoodRec(){const list=S.get('wb_foodrec',{})[today()]||[];const total=list.reduce((s,e)=>s+e.cost,0);document.getElementById('frTotal').textContent='¥'+total;const ul=document.getElementById('frList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🍽️</div>今天还没有记录</li>';else ul.innerHTML=list.map(e=>`<li class="li"><div class="lf"><span class="tag">${mealName[e.meal]}</span>${e.name}</div><div class="lf">¥${e.cost}<span class="del" onclick="delFoodRec(${e.id})">×</span></div></li>`).join('')}
+function addFoodRec(){const name=document.getElementById('frName').value.trim();const cost=document.getElementById('frCost').value;const meal=document.getElementById('frMeal').value;if(!name)return;const vd=document.getElementById('frViewDate')?document.getElementById('frViewDate').value||today():today();const d=S.get('wb_foodrec',{});if(!d[vd])d[vd]=[];d[vd].push({id:Date.now(),name,cost:Number(cost)||0,meal});S.set('wb_foodrec',d);document.getElementById('frName').value='';document.getElementById('frCost').value='';renderFoodRec()}
+function delFoodRec(id){const vd=document.getElementById('frViewDate')?document.getElementById('frViewDate').value||today():today();const d=S.get('wb_foodrec',{});d[vd]=d[vd].filter(e=>e.id!==id);S.set('wb_foodrec',d);renderFoodRec()}
+function renderFoodRec(){const vd=document.getElementById('frViewDate')?document.getElementById('frViewDate').value||today():today();if(document.getElementById('frViewDate')&&!document.getElementById('frViewDate').value)document.getElementById('frViewDate').value=today();const list=S.get('wb_foodrec',{})[vd]||[];const total=list.reduce((s,e)=>s+e.cost,0);document.getElementById('frTotal').textContent='¥'+total;const ul=document.getElementById('frList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🍽️</div>'+vd+'没有记录</li>';else ul.innerHTML=list.map(e=>`<li class="li"><div class="lf"><span class="tag">${mealName[e.meal]}</span>${e.name}</div><div class="lf">¥${e.cost}<span class="del" onclick="delFoodRec(${e.id})">×</span></div></li>`).join('')}
 
 // ===== 计划 =====
 function planTab(t){document.querySelectorAll('#p-plan .seg-item').forEach((s,i)=>s.classList.toggle('active',['today','week','month','todo'][i]===t));['today','week','month','todo'].forEach(x=>document.getElementById('plan-'+x).style.display=x===t?'block':'none');if(t==='today')renderToday();if(t==='week')renderWeek2();if(t==='month')renderMonth();if(t==='todo')renderTodoItem()}
