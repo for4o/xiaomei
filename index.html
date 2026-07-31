@@ -304,6 +304,7 @@ textarea{resize:none;min-height:70px}
   <div class="seg">
     <div class="seg-item active" onclick="foodTab('plan')">周计划</div>
     <div class="seg-item" onclick="foodTab('recipe')">菜谱</div>
+    <div class="seg-item" onclick="foodTab('smart')">智能菜单</div>
     <div class="seg-item" onclick="foodTab('list')">购物清单</div>
     <div class="seg-item" onclick="foodTab('record')">饮食记录</div>
   </div>
@@ -338,6 +339,22 @@ textarea{resize:none;min-height:70px}
     <div class="card">
       <div class="card-head"><div class="card-title"><span class="emoji">📚</span>我的菜谱</div></div>
       <div id="rcList"><div class="empty"><div class="emoji">📖</div>还没有收藏菜谱</div></div>
+    </div>
+  </div>
+
+  <div id="food-smart" style="display:none">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">🥬</span>我的食材库</div><span class="muted" id="ingCount">0种</span></div>
+      <div class="row">
+        <input type="text" id="ingInput" placeholder="输入食材，如 鸡蛋" onkeydown="if(event.key==='Enter')addIng()">
+        <button class="btn fixed" onclick="addIng()" style="min-width:60px">添加</button>
+      </div>
+      <div id="ingList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><span class="emoji">👨‍🍳</span>智能菜单推荐</div></div>
+      <button class="btn btn-block" onclick="genRecipes()">根据食材推荐菜谱</button>
+      <div id="recipeSuggest" style="margin-top:12px"></div>
     </div>
   </div>
 
@@ -677,7 +694,42 @@ function doneMaintain(id){const d=S.get('wb_maintain',[]);const m=d.find(x=>x.id
 function renderMaintain(){const list=S.get('wb_maintain',[]);const ul=document.getElementById('mtList');if(list.length===0)ul.innerHTML='<li class="empty"><div class="emoji">🧹</div>还没有维护提醒</li>';else ul.innerHTML=list.map(m=>{const days=Math.floor((new Date()-new Date(m.lastDone))/86400000);const due=days>=m.cycle;return `<li class="li"><div class="lf"><div><div>${m.name}</div><div class="muted" style="font-size:11px">${m.cycle}天一次 · 上次${m.lastDone} ${due?'<span style="color:var(--red)">该做了</span>':'还剩'+(m.cycle-days)+'天'}</div></div></div><div class="lf"><button class="btn btn-ghost fixed" style="min-width:50px;padding:5px 8px;font-size:11px" onclick="doneMaintain(${m.id})">完成</button><span class="del" onclick="delMaintain(${m.id})">×</span></div></li>`}).join('')}
 
 // ===== 饮食 =====
-function foodTab(t){document.querySelectorAll('#p-food .seg-item').forEach((s,i)=>s.classList.toggle('active',['plan','recipe','list','record'][i]===t));['plan','recipe','list','record'].forEach(x=>document.getElementById('food-'+x).style.display=x===t?'block':'none');if(t==='plan')renderMealPlan();if(t==='recipe')renderRecipe();if(t==='list')renderFoodList();if(t==='record')renderFoodRec()}
+function foodTab(t){document.querySelectorAll('#p-food .seg-item').forEach((s,i)=>s.classList.toggle('active',['plan','recipe','smart','list','record'][i]===t));['plan','recipe','smart','list','record'].forEach(x=>document.getElementById('food-'+x).style.display=x===t?'block':'none');if(t==='plan')renderMealPlan();if(t==='recipe')renderRecipe();if(t==='smart')renderIng();if(t==='list')renderFoodList();if(t==='record')renderFoodRec()}
+
+// ===== 食材库 + 智能菜谱 =====
+function addIng(){const v=document.getElementById('ingInput').value.trim();if(!v)return;const d=S.get('wb_ings',[]);if(!d.includes(v))d.push(v);S.set('wb_ings',d);document.getElementById('ingInput').value='';renderIng()}
+function delIng(i){const d=S.get('wb_ings',[]);d.splice(i,1);S.set('wb_ings',d);renderIng()}
+function renderIng(){const d=S.get('wb_ings',[]);document.getElementById('ingCount').textContent=d.length+'种';const el=document.getElementById('ingList');if(d.length===0)el.innerHTML='<div class="muted" style="width:100%;text-align:center;padding:6px">还没有食材，添加冰箱里有的</div>';else el.innerHTML=d.map((ing,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:#fff;border:1px solid var(--border);border-radius:20px;font-size:13px">${ing}<span class="del" style="font-size:16px" onclick="delIng(${i})">×</span></span>`).join('')}
+function genRecipes(){const ings=S.get('wb_ings',[]);if(ings.length===0){document.getElementById('recipeSuggest').innerHTML='<div class="empty"><div class="emoji">🥬</div>先添加一些食材吧</div>';return}
+  // 菜谱数据库
+  const db=[
+    {name:'番茄炒蛋',need:['番茄','鸡蛋'],steps:'鸡蛋打散炒熟盛出，番茄切块炒出汁，倒回鸡蛋翻炒，加盐糖出锅',cost:8,time:'10分钟'},
+    {name:'蛋炒饭',need:['鸡蛋','米饭'],steps:'鸡蛋打散，热油下蛋液炒散，加米饭翻炒，加盐酱油葱花出锅',cost:5,time:'8分钟'},
+    {name:'番茄鸡蛋面',need:['番茄','鸡蛋','面条'],steps:'番茄切块炒出汁，加水煮开，下面条，淋入蛋液，加盐调味',cost:7,time:'12分钟'},
+    {name:'葱花煎蛋',need:['鸡蛋','葱'],steps:'鸡蛋打散加葱花盐，热油倒入蛋液，两面煎金黄',cost:4,time:'5分钟'},
+    {name:'青椒肉丝',need:['猪肉','青椒'],steps:'猪肉切丝加酱油淀粉腌10分钟，青椒切丝，热油炒肉丝变色加青椒翻炒',cost:12,time:'15分钟'},
+    {name:'土豆丝',need:['土豆'],steps:'土豆切丝泡水去淀粉，热油下花椒爆香，下土豆丝大火快炒，加盐醋出锅',cost:5,time:'10分钟'},
+    {name:'西红柿蛋汤',need:['番茄','鸡蛋'],steps:'番茄切块炒软加水煮开，淋入蛋液，加盐香油葱花',cost:6,time:'10分钟'},
+    {name:'黄瓜炒蛋',need:['黄瓜','鸡蛋'],steps:'鸡蛋炒熟盛出，黄瓜切片翻炒，倒回鸡蛋，加盐出锅',cost:7,time:'8分钟'},
+    {name:'酱油炒面',need:['面条','葱'],steps:'面条煮熟过凉水，热油下葱爆香，加面条酱油翻炒',cost:5,time:'10分钟'},
+    {name:'土豆炖肉',need:['猪肉','土豆'],steps:'猪肉切块焯水，热油炒糖色下肉上色，加土豆酱油水炖30分钟',cost:15,time:'40分钟'},
+    {name:'青椒鸡蛋',need:['青椒','鸡蛋'],steps:'鸡蛋炒熟盛出，青椒切丝炒软，倒回鸡蛋翻炒加盐',cost:6,time:'8分钟'},
+    {name:'番茄土豆汤',need:['番茄','土豆'],steps:'番茄炒出汁，加土豆块和水煮15分钟，加盐调味',cost:5,time:'20分钟'},
+    {name:'肉末豆腐',need:['猪肉','豆腐'],steps:'猪肉剁末炒香，加豆腐块，酱油糖水炖10分钟，撒葱花',cost:10,time:'15分钟'},
+    {name:'白菜豆腐汤',need:['白菜','豆腐'],steps:'白菜炒软加水煮开，下豆腐块炖5分钟，加盐香油',cost:6,time:'15分钟'},
+    {name:'猪肉白菜饺子',need:['猪肉','白菜'],steps:'白菜剁碎挤水，猪肉末调馅，包饺子煮浮起即熟',cost:15,time:'40分钟'},
+    {name:'番茄意面',need:['番茄','面条'],steps:'番茄切碎炒成酱，加盐糖黑胡椒，浇在煮熟的意面上',cost:8,time:'15分钟'},
+  ];
+  // 匹配：食材覆盖≥1
+  const matched=db.filter(r=>r.need.some(n=>ings.some(i=>i.includes(n)||n.includes(i))));
+  const el=document.getElementById('recipeSuggest');
+  if(matched.length===0)el.innerHTML='<div class="tip">当前食材做不了啥菜😂 再多加几种食材试试，比如鸡蛋、番茄、面条这种基础的。</div>';
+  else el.innerHTML=matched.slice(0,5).map((r,i)=>{
+    const have=r.need.filter(n=>ings.some(j=>j.includes(n)||n.includes(j)));
+    const miss=r.need.filter(n=>!ings.some(j=>j.includes(n)||n.includes(j)));
+    return '<div class="recipe"><div class="rname">'+(i+1)+'. '+r.name+'</div><div class="rmeta">💰约¥'+r.cost+' · ⏱️'+r.time+(miss.length?' · <span style="color:#e74c3c">缺:'+miss.join('、')+'</span>':' · <span style="color:#34d399">食材齐全</span>')+'</div><div class="ring">'+r.steps+'</div></div>';
+  }).join('');
+}
 function renderMealPlan(){const plan=S.get('wb_mealplan',{});const days=['周一','周二','周三','周四','周五','周六','周日'];const dayKey={0:7};let html='';for(let i=1;i<=7;i++){const text=plan[i]||'';html+=`<div class="li" style="flex-direction:column;align-items:flex-start;gap:4px"><div class="flex-b" style="width:100%"><strong>${days[i-1]}</strong>${text?`<span class="del" onclick="delMeal(${i})">×</span>`:''}</div><div class="muted" style="font-size:12px">${text||'还没规划'}</div></div>`}document.getElementById('mealPlan').innerHTML=html||'<div class="empty"><div class="emoji">📅</div>还没有安排，去上面添加</div>'}
 function delMeal(day){const p=S.get('wb_mealplan',{});delete p[day];S.set('wb_mealplan',p);renderMealPlan()}
 function addMeal(){const day=document.getElementById('mpDay').value;const v=document.getElementById('mpText').value.trim();if(!v)return;const p=S.get('wb_mealplan',{});p[day]=v;S.set('wb_mealplan',p);document.getElementById('mpText').value='';renderMealPlan()}
