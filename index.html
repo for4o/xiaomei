@@ -110,8 +110,16 @@ textarea{resize:none;min-height:70px}
 .bar{background:linear-gradient(180deg,#f9a8d4,#ec4899);border-radius:5px 5px 0 0;margin:0 auto;width:65%;min-height:3px;transition:height .5s}
 .bar-label{font-size:9px;color:var(--text3);margin-top:3px}.bar-val{font-size:9px;color:var(--primary);font-weight:600;margin-bottom:2px}
 
-.recipe{border:1px solid var(--border);border-radius:var(--rs);padding:12px;margin-bottom:8px}
-.recipe .rname{font-size:14px;font-weight:600;margin-bottom:4px}.recipe .rmeta{font-size:11px;color:var(--text2);margin-bottom:6px}.recipe .ring{font-size:12px;color:var(--text)}
+.recipe{border:1px solid var(--border);border-radius:var(--rs);margin-bottom:8px;overflow:hidden}
+.recipe .rhead{display:flex;align-items:center;justify-content:space-between;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.recipe .rname{font-size:14px;font-weight:600}.recipe .rmeta{font-size:11px;color:var(--text2);margin-top:4px}
+.recipe .rdetail{display:none;padding:0 12px 12px;border-top:1px solid var(--border);margin-top:0}
+.recipe.open .rdetail{display:block}
+.recipe .rarrow{font-size:12px;color:var(--text2);transition:transform .2s}.recipe.open .rarrow{transform:rotate(90deg)}
+.recipe .rstep{font-size:13px;line-height:1.7;color:var(--text)}
+.recipe .ring-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.recipe .itag{font-size:11px;padding:2px 8px;border-radius:10px}.recipe .itag.have{background:#e8f5e9;color:#2e7d32}.recipe .itag.miss{background:#fff3e0;color:#e65100}
+.recipe .match-bar{height:3px;border-radius:2px;background:#eee;margin-top:6px}.recipe .match-fill{height:100%;border-radius:2px;background:var(--primary)}
 
 .book{border:1px solid var(--border);border-radius:var(--rs);padding:12px;margin-bottom:8px}
 .book .btitle{font-size:14px;font-weight:600}.book .bmeta{font-size:11px;color:var(--text2);margin:3px 0}.book .bnote{font-size:12px;color:var(--text)}
@@ -722,35 +730,72 @@ function addIng(){const v=document.getElementById('ingInput').value.trim();if(!v
 function delIng(i){const d=S.get('wb_ings',[]);d.splice(i,1);S.set('wb_ings',d);renderIng()}
 function renderIng(){const d=S.get('wb_ings',[]);document.getElementById('ingCount').textContent=d.length+'种';const el=document.getElementById('ingList');if(d.length===0)el.innerHTML='<div class="muted" style="width:100%;text-align:center;padding:6px">还没有食材，添加冰箱里有的</div>';else el.innerHTML=d.map((ing,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:#fff;border:1px solid var(--border);border-radius:20px;font-size:13px">${ing}<span class="del" style="font-size:16px" onclick="delIng(${i})">×</span></span>`).join('')}
 function genRecipes(){const ings=S.get('wb_ings',[]);if(ings.length===0){document.getElementById('recipeSuggest').innerHTML='<div class="empty"><div class="emoji">🥬</div>先添加一些食材吧</div>';return}
-  // 菜谱数据库
+  // 菜谱数据库（30道菜）
   const db=[
-    {name:'番茄炒蛋',need:['番茄','鸡蛋'],steps:'鸡蛋打散炒熟盛出，番茄切块炒出汁，倒回鸡蛋翻炒，加盐糖出锅',cost:8,time:'10分钟'},
-    {name:'蛋炒饭',need:['鸡蛋','米饭'],steps:'鸡蛋打散，热油下蛋液炒散，加米饭翻炒，加盐酱油葱花出锅',cost:5,time:'8分钟'},
-    {name:'番茄鸡蛋面',need:['番茄','鸡蛋','面条'],steps:'番茄切块炒出汁，加水煮开，下面条，淋入蛋液，加盐调味',cost:7,time:'12分钟'},
-    {name:'葱花煎蛋',need:['鸡蛋','葱'],steps:'鸡蛋打散加葱花盐，热油倒入蛋液，两面煎金黄',cost:4,time:'5分钟'},
-    {name:'青椒肉丝',need:['猪肉','青椒'],steps:'猪肉切丝加酱油淀粉腌10分钟，青椒切丝，热油炒肉丝变色加青椒翻炒',cost:12,time:'15分钟'},
-    {name:'土豆丝',need:['土豆'],steps:'土豆切丝泡水去淀粉，热油下花椒爆香，下土豆丝大火快炒，加盐醋出锅',cost:5,time:'10分钟'},
-    {name:'西红柿蛋汤',need:['番茄','鸡蛋'],steps:'番茄切块炒软加水煮开，淋入蛋液，加盐香油葱花',cost:6,time:'10分钟'},
-    {name:'黄瓜炒蛋',need:['黄瓜','鸡蛋'],steps:'鸡蛋炒熟盛出，黄瓜切片翻炒，倒回鸡蛋，加盐出锅',cost:7,time:'8分钟'},
-    {name:'酱油炒面',need:['面条','葱'],steps:'面条煮熟过凉水，热油下葱爆香，加面条酱油翻炒',cost:5,time:'10分钟'},
-    {name:'土豆炖肉',need:['猪肉','土豆'],steps:'猪肉切块焯水，热油炒糖色下肉上色，加土豆酱油水炖30分钟',cost:15,time:'40分钟'},
-    {name:'青椒鸡蛋',need:['青椒','鸡蛋'],steps:'鸡蛋炒熟盛出，青椒切丝炒软，倒回鸡蛋翻炒加盐',cost:6,time:'8分钟'},
-    {name:'番茄土豆汤',need:['番茄','土豆'],steps:'番茄炒出汁，加土豆块和水煮15分钟，加盐调味',cost:5,time:'20分钟'},
-    {name:'肉末豆腐',need:['猪肉','豆腐'],steps:'猪肉剁末炒香，加豆腐块，酱油糖水炖10分钟，撒葱花',cost:10,time:'15分钟'},
-    {name:'白菜豆腐汤',need:['白菜','豆腐'],steps:'白菜炒软加水煮开，下豆腐块炖5分钟，加盐香油',cost:6,time:'15分钟'},
-    {name:'猪肉白菜饺子',need:['猪肉','白菜'],steps:'白菜剁碎挤水，猪肉末调馅，包饺子煮浮起即熟',cost:15,time:'40分钟'},
-    {name:'番茄意面',need:['番茄','面条'],steps:'番茄切碎炒成酱，加盐糖黑胡椒，浇在煮熟的意面上',cost:8,time:'15分钟'},
+    {name:'番茄炒蛋',need:['番茄','鸡蛋'],steps:'1.鸡蛋打散加少许盐，热油下锅炒成块状盛出\n2.番茄切块，热油炒出汁水\n3.倒回鸡蛋翻炒，加盐少许糖调味出锅',cost:8,time:'10分钟',lv:'简单'},
+    {name:'蛋炒饭',need:['鸡蛋','米饭'],steps:'1.鸡蛋打散，热油下蛋液炒散\n2.加入隔夜米饭大火翻炒\n3.加盐、酱油、葱花翻匀出锅',cost:5,time:'8分钟',lv:'简单'},
+    {name:'番茄鸡蛋面',need:['番茄','鸡蛋','面条'],steps:'1.番茄切块炒出汁\n2.加水煮开，下面条\n3.淋入蛋液，加盐调味',cost:7,time:'12分钟',lv:'简单'},
+    {name:'葱花煎蛋',need:['鸡蛋','葱'],steps:'1.鸡蛋打散加葱花和盐\n2.热油倒入蛋液\n3.中小火两面煎至金黄',cost:4,time:'5分钟',lv:'简单'},
+    {name:'青椒肉丝',need:['猪肉','青椒'],steps:'1.猪肉切丝，加酱油淀粉腌10分钟\n2.青椒切丝\n3.热油炒肉丝变色，加青椒翻炒，调味出锅',cost:12,time:'15分钟',lv:'中等'},
+    {name:'酸辣土豆丝',need:['土豆'],steps:'1.土豆切丝，泡水去淀粉\n2.热油下花椒干辣椒爆香\n3.下土豆丝大火快炒，加盐醋出锅',cost:5,time:'10分钟',lv:'简单'},
+    {name:'西红柿蛋汤',need:['番茄','鸡蛋'],steps:'1.番茄切块炒软\n2.加水煮开\n3.淋入蛋液，加盐香油葱花',cost:6,time:'10分钟',lv:'简单'},
+    {name:'黄瓜炒蛋',need:['黄瓜','鸡蛋'],steps:'1.鸡蛋炒熟盛出\n2.黄瓜切片翻炒\n3.倒回鸡蛋，加盐出锅',cost:7,time:'8分钟',lv:'简单'},
+    {name:'酱油炒面',need:['面条','葱'],steps:'1.面条煮熟过凉水\n2.热油下葱爆香\n3.加面条、酱油翻炒匀',cost:5,time:'10分钟',lv:'简单'},
+    {name:'土豆炖肉',need:['猪肉','土豆'],steps:'1.猪肉切块焯水\n2.热油炒糖色下肉上色\n3.加土豆、酱油、水炖30分钟',cost:15,time:'40分钟',lv:'中等'},
+    {name:'青椒炒蛋',need:['青椒','鸡蛋'],steps:'1.鸡蛋炒熟盛出\n2.青椒切丝炒软\n3.倒回鸡蛋翻炒加盐',cost:6,time:'8分钟',lv:'简单'},
+    {name:'番茄土豆汤',need:['番茄','土豆'],steps:'1.番茄炒出汁\n2.加土豆块和水煮15分钟\n3.加盐调味',cost:5,time:'20分钟',lv:'简单'},
+    {name:'肉末豆腐',need:['猪肉','豆腐'],steps:'1.猪肉剁末炒香\n2.加豆腐块、酱油、糖、水炖10分钟\n3.撒葱花出锅',cost:10,time:'15分钟',lv:'中等'},
+    {name:'白菜豆腐汤',need:['白菜','豆腐'],steps:'1.白菜炒软加水煮开\n2.下豆腐块炖5分钟\n3.加盐香油',cost:6,time:'15分钟',lv:'简单'},
+    {name:'猪肉白菜饺子',need:['猪肉','白菜'],steps:'1.白菜剁碎挤水\n2.猪肉末调馅\n3.包饺子煮浮起即熟',cost:15,time:'40分钟',lv:'困难'},
+    {name:'番茄意面',need:['番茄','面条'],steps:'1.番茄切碎炒成酱\n2.加盐糖黑胡椒调味\n3.浇在煮熟的面上',cost:8,time:'15分钟',lv:'简单'},
+    {name:'蒜蓉西兰花',need:['西兰花','蒜'],steps:'1.西兰花掰小朵焯水\n2.热油下蒜蓉爆香\n3.下西兰花翻炒加盐',cost:8,time:'10分钟',lv:'简单'},
+    {name:'可乐鸡翅',need:['鸡翅','可乐'],steps:'1.鸡翅划口焯水\n2.热油煎至两面金黄\n3.加可乐、酱油焖煮收汁',cost:15,time:'25分钟',lv:'中等'},
+    {name:'红烧排骨',need:['排骨'],steps:'1.排骨焯水洗净\n2.热油炒糖色下排骨上色\n3.加酱油、料酒、水炖40分钟收汁',cost:25,time:'50分钟',lv:'中等'},
+    {name:'清蒸鱼',need:['鱼','葱','姜'],steps:'1.鱼处理干净划刀\n2.铺姜丝葱蒸8分钟\n3.淋蒸鱼豉油，浇热油',cost:20,time:'15分钟',lv:'中等'},
+    {name:'麻婆豆腐',need:['豆腐','猪肉'],steps:'1.豆腐切块焯水\n2.肉末炒香加豆瓣酱\n3.下豆腐加水炖，勾芡撒花椒粉',cost:10,time:'15分钟',lv:'中等'},
+    {name:'鱼香肉丝',need:['猪肉','木耳','青椒'],steps:'1.猪肉切丝腌制\n2.调鱼香汁（醋、糖、酱油、豆瓣酱）\n3.炒肉丝加配料，倒鱼香汁翻炒',cost:15,time:'20分钟',lv:'中等'},
+    {name:'凉拌黄瓜',need:['黄瓜','蒜'],steps:'1.黄瓜拍碎切段\n2.蒜蓉、醋、酱油、香油、辣椒拌匀\n3.浇在黄瓜上拌匀',cost:5,time:'5分钟',lv:'简单'},
+    {name:'蒸蛋羹',need:['鸡蛋'],steps:'1.鸡蛋加1.5倍温水打散\n2.过滤去泡盖保鲜膜\n3.中火蒸10分钟，淋酱油香油',cost:3,time:'12分钟',lv:'简单'},
+    {name:'土豆排骨汤',need:['排骨','土豆'],steps:'1.排骨焯水洗净\n2.加水炖30分钟\n3.下土豆块再炖15分钟，加盐',cost:18,time:'50分钟',lv:'中等'},
+    {name:'葱油拌面',need:['面条','葱'],steps:'1.面条煮熟捞出\n2.小葱炸至焦黄捞出\n3.葱油浇在面上，加酱油拌匀',cost:5,time:'10分钟',lv:'简单'},
+    {name:'白菜猪肉炖粉条',need:['猪肉','白菜','粉条'],steps:'1.猪肉切片炒香\n2.加白菜炒软\n3.加粉条和水炖15分钟，加酱油盐',cost:12,time:'25分钟',lv:'中等'},
+    {name:'番茄牛腩',need:['番茄','牛肉'],steps:'1.牛腩切块焯水\n2.番茄炒出汁\n3.加水炖牛腩1小时，加盐',cost:25,time:'70分钟',lv:'中等'},
+    {name:'韭菜炒蛋',need:['韭菜','鸡蛋'],steps:'1.鸡蛋炒熟盛出\n2.韭菜切段翻炒\n3.倒回鸡蛋加盐翻匀',cost:6,time:'8分钟',lv:'简单'},
+    {name:'蒜蓉粉丝蒸扇贝',need:['粉丝','蒜','葱'],steps:'1.粉丝泡软铺底\n2.蒜蓉炒香浇上\n3.蒸5分钟，撒葱油',cost:12,time:'10分钟',lv:'中等'},
   ];
-  // 匹配：食材覆盖≥1
-  const matched=db.filter(r=>r.need.some(n=>ings.some(i=>i.includes(n)||n.includes(i))));
+  // 匹配算法：计算匹配度
+  const matched=db.map(r=>{
+    const have=r.need.filter(n=>ings.some(i=>i.includes(n)||n.includes(i)));
+    const miss=r.need.filter(n=>!ings.some(i=>i.includes(n)||n.includes(i)));
+    const score=r.need.length?have.length/r.need.length:0;
+    return{...r,have,miss,score};
+  }).filter(r=>r.score>0).sort((a,b)=>b.score-a.score||a.miss.length-b.miss.length);
   const el=document.getElementById('recipeSuggest');
   if(matched.length===0)el.innerHTML='<div class="tip">当前食材做不了啥菜😂 再多加几种食材试试，比如鸡蛋、番茄、面条这种基础的。</div>';
-  else el.innerHTML=matched.slice(0,5).map((r,i)=>{
-    const have=r.need.filter(n=>ings.some(j=>j.includes(n)||n.includes(j)));
-    const miss=r.need.filter(n=>!ings.some(j=>j.includes(n)||n.includes(j)));
-    return '<div class="recipe"><div class="rname">'+(i+1)+'. '+r.name+'</div><div class="rmeta">💰约¥'+r.cost+' · ⏱️'+r.time+(miss.length?' · <span style="color:#e74c3c">缺:'+miss.join('、')+'</span>':' · <span style="color:#34d399">食材齐全</span>')+'</div><div class="ring">'+r.steps+'</div></div>';
+  else el.innerHTML=matched.map((r,i)=>{
+    const pct=Math.round(r.score*100);
+    const haveTags=r.have.map(n=>`<span class="itag have">✓${n}</span>`).join('');
+    const missTags=r.miss.map(n=>`<span class="itag miss">缺${n}</span>`).join('');
+    return `<div class="recipe" id="rcp${i}" onclick="toggleRecipe('rcp${i}')">
+      <div class="rhead">
+        <div>
+          <div class="rname">${i+1}. ${r.name}${r.score===1?' <span style="font-size:11px">✅食材齐全</span>':''}</div>
+          <div class="rmeta">💰约¥${r.cost} · ⏱️${r.time} · 📋${r.lv}</div>
+          <div class="match-bar"><div class="match-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:${pct>=100?'#2e7d32':pct>=50?'#f57c17':'#e65100'}">${pct}%</span>
+          <span class="rarrow">▶</span>
+        </div>
+      </div>
+      <div class="rdetail">
+        <div class="ring-row">${haveTags}${missTags}</div>
+        <div class="rstep" style="margin-top:8px;white-space:pre-line">${r.steps}</div>
+      </div>
+    </div>`;
   }).join('');
 }
+function toggleRecipe(id){const el=document.getElementById(id);if(el)el.classList.toggle('open')}
 function renderMealPlan(){const plan=S.get('wb_mealplan',{});const days=['周一','周二','周三','周四','周五','周六','周日'];const dayKey={0:7};let html='';for(let i=1;i<=7;i++){const text=plan[i]||'';html+=`<div class="li" style="flex-direction:column;align-items:flex-start;gap:4px"><div class="flex-b" style="width:100%"><strong>${days[i-1]}</strong>${text?`<span class="del" onclick="delMeal(${i})">×</span>`:''}</div><div class="muted" style="font-size:12px">${text||'还没规划'}</div></div>`}document.getElementById('mealPlan').innerHTML=html||'<div class="empty"><div class="emoji">📅</div>还没有安排，去上面添加</div>'}
 function delMeal(day){const p=S.get('wb_mealplan',{});delete p[day];S.set('wb_mealplan',p);renderMealPlan()}
 function addMeal(){const day=document.getElementById('mpDay').value;const v=document.getElementById('mpText').value.trim();if(!v)return;const p=S.get('wb_mealplan',{});p[day]=v;S.set('wb_mealplan',p);document.getElementById('mpText').value='';renderMealPlan()}
